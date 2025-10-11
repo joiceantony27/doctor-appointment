@@ -106,7 +106,7 @@ jobs:
         pip install safety bandit
     
     - name: Run safety check
-      run: safety check -r requirements.txt
+      run: safety check --file requirements.txt
     
     - name: Run bandit security scan
       run: bandit -r . -x tests/
