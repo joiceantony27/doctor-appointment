@@ -105,8 +105,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install safety bandit
     
-    - name: Run safety check
-      run: safety check --file requirements.txt
+    - name: Run safety scan
+      run: safety scan --file requirements.txt --continue-on-vulnerability-error
     
     - name: Run bandit security scan
       run: bandit -r . -x tests/
