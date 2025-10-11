@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: doctor_appointment_db_prod
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - doctor_network_prod
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: doctor_appointment_redis_prod
+    networks:
+      - doctor_network_prod
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    image: ${AZURE_REGISTRY_LOGIN_SERVER}/doctor-appointment:latest
+    container_name: doctor_appointment_web_prod
+    environment:
+      - DJANGO_SETTINGS_MODULE=doctor_appointment.settings_prod
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=False
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+    volumes:
+      - static_volume_prod:/app/staticfiles
+      - media_volume_prod:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - doctor_network_prod
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: doctor_appointment_nginx_prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf
+      - static_volume_prod:/app/staticfiles
+      - media_volume_prod:/app/media
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - web
+    networks:
+      - doctor_network_prod
+    restart: always
+
+  celery:
+    image: ${AZURE_REGISTRY_LOGIN_SERVER}/doctor-appointment:latest
+    container_name: doctor_appointment_celery_prod
+    command: celery -A doctor_appointment worker -l info
+    environment:
+      - DJANGO_SETTINGS_MODULE=doctor_appointment.settings_prod
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=False
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - media_volume_prod:/app/media
+    depends_on:
+      - db
+      - redis
+    networks:
+      - doctor_network_prod
+    restart: always
+
+volumes:
+  postgres_data_prod:
+  static_volume_prod:
+  media_volume_prod:
+
+networks:
+  doctor_network_prod:
+    driver: bridge

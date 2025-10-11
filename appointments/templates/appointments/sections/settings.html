@@ -1,0 +1,421 @@
+{% extends 'appointments/admin_dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- General Settings -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">General Settings</h6>
+                </div>
+                <div class="card-body">
+                    <form id="generalSettingsForm" method="post" action="{% url 'appointments:admin_settings' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="general">
+                        
+                        <div class="mb-3">
+                            <label for="clinic_name" class="form-label">Clinic Name</label>
+                            <input type="text" class="form-control" id="clinic_name" name="clinic_name" value="{{ settings.clinic_name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="clinic_email" class="form-label">Clinic Email</label>
+                            <input type="email" class="form-control" id="clinic_email" name="clinic_email" value="{{ settings.clinic_email }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="clinic_phone" class="form-label">Clinic Phone</label>
+                            <input type="tel" class="form-control" id="clinic_phone" name="clinic_phone" value="{{ settings.clinic_phone }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="clinic_address" class="form-label">Clinic Address</label>
+                            <textarea class="form-control" id="clinic_address" name="clinic_address" rows="3" required>{{ settings.clinic_address }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="timezone" class="form-label">Timezone</label>
+                            <select class="form-select" id="timezone" name="timezone" required>
+                                {% for tz in timezones %}
+                                <option value="{{ tz }}" {% if tz == settings.timezone %}selected{% endif %}>{{ tz }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="currency" class="form-label">Currency</label>
+                            <select class="form-select" id="currency" name="currency" required>
+                                {% for code, name in currencies %}
+                                <option value="{{ code }}" {% if code == settings.currency %}selected{% endif %}>{{ code }} - {{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="date_format" class="form-label">Date Format</label>
+                            <select class="form-select" id="date_format" name="date_format" required>
+                                {% for format in date_formats %}
+                                <option value="{{ format.value }}" {% if format.value == settings.date_format %}selected{% endif %}>{{ format.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="time_format" class="form-label">Time Format</label>
+                            <select class="form-select" id="time_format" name="time_format" required>
+                                <option value="12" {% if settings.time_format == '12' %}selected{% endif %}>12-hour (AM/PM)</option>
+                                <option value="24" {% if settings.time_format == '24' %}selected{% endif %}>24-hour</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save General Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointment Settings -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Appointment Settings</h6>
+                </div>
+                <div class="card-body">
+                    <form id="appointmentSettingsForm" method="post" action="{% url 'appointments:admin_settings' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="appointment">
+                        
+                        <div class="mb-3">
+                            <label for="appointment_duration" class="form-label">Default Appointment Duration (minutes)</label>
+                            <input type="number" class="form-control" id="appointment_duration" name="appointment_duration" value="{{ settings.appointment_duration }}" min="15" step="15" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="buffer_time" class="form-label">Buffer Time Between Appointments (minutes)</label>
+                            <input type="number" class="form-control" id="buffer_time" name="buffer_time" value="{{ settings.buffer_time }}" min="0" step="5" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="booking_advance_days" class="form-label">Maximum Days in Advance for Booking</label>
+                            <input type="number" class="form-control" id="booking_advance_days" name="booking_advance_days" value="{{ settings.booking_advance_days }}" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="cancellation_hours" class="form-label">Minimum Hours Before Cancellation</label>
+                            <input type="number" class="form-control" id="cancellation_hours" name="cancellation_hours" value="{{ settings.cancellation_hours }}" min="0" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="rescheduling_hours" class="form-label">Minimum Hours Before Rescheduling</label>
+                            <input type="number" class="form-control" id="rescheduling_hours" name="rescheduling_hours" value="{{ settings.rescheduling_hours }}" min="0" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="max_appointments_per_day" class="form-label">Maximum Appointments Per Day</label>
+                            <input type="number" class="form-control" id="max_appointments_per_day" name="max_appointments_per_day" value="{{ settings.max_appointments_per_day }}" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="reminder_hours" class="form-label">Appointment Reminder Hours</label>
+                            <input type="number" class="form-control" id="reminder_hours" name="reminder_hours" value="{{ settings.reminder_hours }}" min="1" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="allow_same_day_booking" name="allow_same_day_booking" {% if settings.allow_same_day_booking %}checked{% endif %}>
+                                <label class="form-check-label" for="allow_same_day_booking">
+                                    Allow Same Day Booking
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="require_payment_confirmation" name="require_payment_confirmation" {% if settings.require_payment_confirmation %}checked{% endif %}>
+                                <label class="form-check-label" for="require_payment_confirmation">
+                                    Require Payment Confirmation
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Appointment Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Notification Settings</h6>
+                </div>
+                <div class="card-body">
+                    <form id="notificationSettingsForm" method="post" action="{% url 'appointments:admin_settings' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="notification">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email Notifications</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="email_appointment_confirmation" name="email_appointment_confirmation" {% if settings.email_appointment_confirmation %}checked{% endif %}>
+                                <label class="form-check-label" for="email_appointment_confirmation">
+                                    Appointment Confirmation
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="email_appointment_reminder" name="email_appointment_reminder" {% if settings.email_appointment_reminder %}checked{% endif %}>
+                                <label class="form-check-label" for="email_appointment_reminder">
+                                    Appointment Reminder
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="email_appointment_cancellation" name="email_appointment_cancellation" {% if settings.email_appointment_cancellation %}checked{% endif %}>
+                                <label class="form-check-label" for="email_appointment_cancellation">
+                                    Appointment Cancellation
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="email_payment_confirmation" name="email_payment_confirmation" {% if settings.email_payment_confirmation %}checked{% endif %}>
+                                <label class="form-check-label" for="email_payment_confirmation">
+                                    Payment Confirmation
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">SMS Notifications</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sms_appointment_confirmation" name="sms_appointment_confirmation" {% if settings.sms_appointment_confirmation %}checked{% endif %}>
+                                <label class="form-check-label" for="sms_appointment_confirmation">
+                                    Appointment Confirmation
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sms_appointment_reminder" name="sms_appointment_reminder" {% if settings.sms_appointment_reminder %}checked{% endif %}>
+                                <label class="form-check-label" for="sms_appointment_reminder">
+                                    Appointment Reminder
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sms_appointment_cancellation" name="sms_appointment_cancellation" {% if settings.sms_appointment_cancellation %}checked{% endif %}>
+                                <label class="form-check-label" for="sms_appointment_cancellation">
+                                    Appointment Cancellation
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_host" class="form-label">SMTP Host</label>
+                            <input type="text" class="form-control" id="smtp_host" name="smtp_host" value="{{ settings.smtp_host }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_port" class="form-label">SMTP Port</label>
+                            <input type="number" class="form-control" id="smtp_port" name="smtp_port" value="{{ settings.smtp_port }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_username" class="form-label">SMTP Username</label>
+                            <input type="text" class="form-control" id="smtp_username" name="smtp_username" value="{{ settings.smtp_username }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_password" class="form-label">SMTP Password</label>
+                            <input type="password" class="form-control" id="smtp_password" name="smtp_password" value="{{ settings.smtp_password }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sms_provider" class="form-label">SMS Provider</label>
+                            <select class="form-select" id="sms_provider" name="sms_provider">
+                                <option value="">Select Provider</option>
+                                {% for provider in sms_providers %}
+                                <option value="{{ provider.value }}" {% if provider.value == settings.sms_provider %}selected{% endif %}>{{ provider.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sms_api_key" class="form-label">SMS API Key</label>
+                            <input type="text" class="form-control" id="sms_api_key" name="sms_api_key" value="{{ settings.sms_api_key }}">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Settings -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Payment Settings</h6>
+                </div>
+                <div class="card-body">
+                    <form id="paymentSettingsForm" method="post" action="{% url 'appointments:admin_settings' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="payment">
+                        
+                        <div class="mb-3">
+                            <label for="payment_gateway" class="form-label">Payment Gateway</label>
+                            <select class="form-select" id="payment_gateway" name="payment_gateway" required>
+                                <option value="">Select Gateway</option>
+                                {% for gateway in payment_gateways %}
+                                <option value="{{ gateway.value }}" {% if gateway.value == settings.payment_gateway %}selected{% endif %}>{{ gateway.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment_mode" class="form-label">Payment Mode</label>
+                            <select class="form-select" id="payment_mode" name="payment_mode" required>
+                                <option value="test" {% if settings.payment_mode == 'test' %}selected{% endif %}>Test Mode</option>
+                                <option value="live" {% if settings.payment_mode == 'live' %}selected{% endif %}>Live Mode</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment_api_key" class="form-label">API Key</label>
+                            <input type="text" class="form-control" id="payment_api_key" name="payment_api_key" value="{{ settings.payment_api_key }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment_secret_key" class="form-label">Secret Key</label>
+                            <input type="password" class="form-control" id="payment_secret_key" name="payment_secret_key" value="{{ settings.payment_secret_key }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment_webhook_secret" class="form-label">Webhook Secret</label>
+                            <input type="password" class="form-control" id="payment_webhook_secret" name="payment_webhook_secret" value="{{ settings.payment_webhook_secret }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Accepted Payment Methods</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="accept_credit_card" name="accept_credit_card" {% if settings.accept_credit_card %}checked{% endif %}>
+                                <label class="form-check-label" for="accept_credit_card">
+                                    Credit Card
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="accept_debit_card" name="accept_debit_card" {% if settings.accept_debit_card %}checked{% endif %}>
+                                <label class="form-check-label" for="accept_debit_card">
+                                    Debit Card
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="accept_net_banking" name="accept_net_banking" {% if settings.accept_net_banking %}checked{% endif %}>
+                                <label class="form-check-label" for="accept_net_banking">
+                                    Net Banking
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="accept_upi" name="accept_upi" {% if settings.accept_upi %}checked{% endif %}>
+                                <label class="form-check-label" for="accept_upi">
+                                    UPI
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="accept_wallet" name="accept_wallet" {% if settings.accept_wallet %}checked{% endif %}>
+                                <label class="form-check-label" for="accept_wallet">
+                                    Wallet
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tax_percentage" class="form-label">Tax Percentage</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="tax_percentage" name="tax_percentage" value="{{ settings.tax_percentage }}" min="0" max="100" step="0.01">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="currency_symbol" class="form-label">Currency Symbol</label>
+                            <input type="text" class="form-control" id="currency_symbol" name="currency_symbol" value="{{ settings.currency_symbol }}" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Payment Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Form submission handling
+    $('form').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const formData = new FormData(this);
+
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.status === 'success') {
+                    showToast('Settings saved successfully');
+                } else {
+                    showToast('Error saving settings', 'error');
+                }
+            },
+            error: function() {
+                showToast('Error saving settings', 'error');
+            }
+        });
+    });
+
+    // Payment gateway dependent fields
+    $('#payment_gateway').on('change', function() {
+        const gateway = $(this).val();
+        if (gateway) {
+            // Show gateway-specific fields
+            $('.gateway-fields').hide();
+            $(`.gateway-${gateway}-fields`).show();
+        } else {
+            $('.gateway-fields').hide();
+        }
+    });
+
+    // Initialize payment gateway fields
+    $('#payment_gateway').trigger('change');
+
+    // Test connection buttons
+    $('.test-connection').on('click', function(e) {
+        e.preventDefault();
+        const type = $(this).data('type');
+        const form = $(this).closest('form');
+        const formData = new FormData(form[0]);
+        formData.append('test_connection', type);
+
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.status === 'success') {
+                    showToast('Connection successful');
+                } else {
+                    showToast('Connection failed: ' + response.message, 'error');
+                }
+            },
+            error: function() {
+                showToast('Error testing connection', 'error');
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

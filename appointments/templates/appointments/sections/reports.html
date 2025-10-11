@@ -1,0 +1,560 @@
+{% extends 'appointments/admin_dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Reports & Analytics</h1>
+        <div>
+            <button class="btn btn-success me-2" onclick="exportReport()">
+                <i class="fas fa-download"></i> Export Report
+            </button>
+            <button class="btn btn-primary" onclick="printReport()">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Date Range</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="reportType">Report Type</label>
+                        <select class="form-control" id="reportType" onchange="updateReport()">
+                            <option value="daily">Daily Report</option>
+                            <option value="weekly">Weekly Report</option>
+                            <option value="monthly">Monthly Report</option>
+                            <option value="yearly">Yearly Report</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" onchange="updateReport()">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="endDate">End Date</label>
+                        <input type="date" class="form-control" id="endDate" onchange="updateReport()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Appointments</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_appointments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Revenue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_revenue }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Average Rating</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ avg_rating }}/5</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-star fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                New Patients</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ new_patients }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Revenue Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Revenue Overview</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Chart Options:</div>
+                            <a class="dropdown-item" href="#" onclick="updateChart('revenue', 'daily')">Daily</a>
+                            <a class="dropdown-item" href="#" onclick="updateChart('revenue', 'weekly')">Weekly</a>
+                            <a class="dropdown-item" href="#" onclick="updateChart('revenue', 'monthly')">Monthly</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments Chart -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Appointments by Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="appointmentsChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> Completed
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> Scheduled
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-warning"></i> Pending
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-danger"></i> Cancelled
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Reports -->
+    <div class="row">
+        <!-- Top Doctors -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Performing Doctors</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Doctor</th>
+                                    <th>Specialization</th>
+                                    <th>Appointments</th>
+                                    <th>Rating</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doctor in top_doctors %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if doctor.user.profile_picture %}
+                                                <img src="{{ doctor.user.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                                            {% else %}
+                                                <i class="fas fa-user-md fa-2x me-2"></i>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">Dr. {{ doctor.user.get_full_name }}</div>
+                                                <small class="text-muted">{{ doctor.user.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ doctor.specialization.name }}</td>
+                                    <td>{{ doctor.appointment_count }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">{{ doctor.rating }}/5</div>
+                                            <div class="progress" style="width: 100px;">
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ doctor.rating|multiply:20 }}%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${{ doctor.revenue }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Specializations -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Popular Specializations</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Specialization</th>
+                                    <th>Doctors</th>
+                                    <th>Appointments</th>
+                                    <th>Revenue</th>
+                                    <th>Growth</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for spec in popular_specializations %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if spec.icon %}
+                                                <img src="{{ spec.icon.url }}" alt="Icon" class="me-2" width="32" height="32">
+                                            {% else %}
+                                                <i class="fas fa-stethoscope fa-2x me-2"></i>
+                                            {% endif %}
+                                            <div class="fw-bold">{{ spec.name }}</div>
+                                        </div>
+                                    </td>
+                                    <td>{{ spec.doctor_count }}</td>
+                                    <td>{{ spec.appointment_count }}</td>
+                                    <td>${{ spec.revenue }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2 {% if spec.growth >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                {{ spec.growth }}%
+                                            </span>
+                                            <i class="fas fa-arrow-{% if spec.growth >= 0 %}up{% else %}down{% endif %} text-{% if spec.growth >= 0 %}success{% else %}danger{% endif %}"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Initialize charts
+let revenueChart;
+let appointmentsChart;
+
+$(document).ready(function() {
+    // Set default date range to current month
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    $('#startDate').val(firstDay.toISOString().split('T')[0]);
+    $('#endDate').val(lastDay.toISOString().split('T')[0]);
+    
+    // Initialize charts
+    initializeCharts();
+    updateReport();
+});
+
+function initializeCharts() {
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Revenue',
+                data: [],
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#4e73df',
+                pointBorderColor: '#4e73df',
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: '#4e73df',
+                pointHoverBorderColor: '#4e73df',
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 25,
+                    top: 25,
+                    bottom: 0
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 7
+                    }
+                },
+                y: {
+                    ticks: {
+                        maxTicksLimit: 5,
+                        padding: 10,
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    },
+                    grid: {
+                        color: "rgb(234, 236, 244)",
+                        zeroLineColor: "rgb(234, 236, 244)",
+                        drawBorder: false,
+                        borderDash: [2],
+                        zeroLineBorderDash: [2]
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyColor: "#858796",
+                    titleMarginBottom: 10,
+                    titleColor: '#6e707e',
+                    titleFontSize: 14,
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    intersect: false,
+                    mode: 'index',
+                    caretPadding: 10,
+                    callbacks: {
+                        label: function(context) {
+                            return '$' + context.parsed.y;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Appointments Chart
+    const appointmentsCtx = document.getElementById('appointmentsChart').getContext('2d');
+    appointmentsChart = new Chart(appointmentsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Scheduled', 'Pending', 'Cancelled'],
+            datasets: [{
+                data: [0, 0, 0, 0],
+                backgroundColor: ['#1cc88a', '#4e73df', '#f6c23e', '#e74a3b'],
+                hoverBackgroundColor: ['#17a673', '#2e59d9', '#dda20a', '#be2617'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            cutout: '80%'
+        }
+    });
+}
+
+function updateReport() {
+    const startDate = $('#startDate').val();
+    const endDate = $('#endDate').val();
+    const reportType = $('#reportType').val();
+
+    $.get('/admin/reports/data/', {
+        start_date: startDate,
+        end_date: endDate,
+        report_type: reportType
+    }, function(data) {
+        // Update summary cards
+        $('.total-appointments').text(data.total_appointments);
+        $('.total-revenue').text('$' + data.total_revenue);
+        $('.avg-rating').text(data.avg_rating + '/5');
+        $('.new-patients').text(data.new_patients);
+
+        // Update revenue chart
+        revenueChart.data.labels = data.revenue_data.labels;
+        revenueChart.data.datasets[0].data = data.revenue_data.values;
+        revenueChart.update();
+
+        // Update appointments chart
+        appointmentsChart.data.datasets[0].data = [
+            data.appointments.completed,
+            data.appointments.scheduled,
+            data.appointments.pending,
+            data.appointments.cancelled
+        ];
+        appointmentsChart.update();
+
+        // Update tables
+        updateTopDoctorsTable(data.top_doctors);
+        updateSpecializationsTable(data.popular_specializations);
+    });
+}
+
+function updateChart(chartType, period) {
+    const startDate = $('#startDate').val();
+    const endDate = $('#endDate').val();
+
+    $.get('/admin/reports/chart-data/', {
+        chart_type: chartType,
+        period: period,
+        start_date: startDate,
+        end_date: endDate
+    }, function(data) {
+        if (chartType === 'revenue') {
+            revenueChart.data.labels = data.labels;
+            revenueChart.data.datasets[0].data = data.values;
+            revenueChart.update();
+        }
+    });
+}
+
+function updateTopDoctorsTable(doctors) {
+    const tbody = $('#topDoctorsTable tbody');
+    tbody.empty();
+
+    doctors.forEach(doctor => {
+        tbody.append(`
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        ${doctor.profile_picture ? 
+                            `<img src="${doctor.profile_picture}" alt="Profile" class="rounded-circle me-2" width="32" height="32">` :
+                            `<i class="fas fa-user-md fa-2x me-2"></i>`
+                        }
+                        <div>
+                            <div class="fw-bold">Dr. ${doctor.full_name}</div>
+                            <small class="text-muted">${doctor.email}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>${doctor.specialization}</td>
+                <td>${doctor.appointment_count}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">${doctor.rating}/5</div>
+                        <div class="progress" style="width: 100px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: ${doctor.rating * 20}%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>$${doctor.revenue}</td>
+            </tr>
+        `);
+    });
+}
+
+function updateSpecializationsTable(specializations) {
+    const tbody = $('#specializationsTable tbody');
+    tbody.empty();
+
+    specializations.forEach(spec => {
+        tbody.append(`
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        ${spec.icon ? 
+                            `<img src="${spec.icon}" alt="Icon" class="me-2" width="32" height="32">` :
+                            `<i class="fas fa-stethoscope fa-2x me-2"></i>`
+                        }
+                        <div class="fw-bold">${spec.name}</div>
+                    </div>
+                </td>
+                <td>${spec.doctor_count}</td>
+                <td>${spec.appointment_count}</td>
+                <td>$${spec.revenue}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2 ${spec.growth >= 0 ? 'text-success' : 'text-danger'}">
+                            ${spec.growth}%
+                        </span>
+                        <i class="fas fa-arrow-${spec.growth >= 0 ? 'up' : 'down'} text-${spec.growth >= 0 ? 'success' : 'danger'}"></i>
+                    </div>
+                </td>
+            </tr>
+        `);
+    });
+}
+
+function exportReport() {
+    const startDate = $('#startDate').val();
+    const endDate = $('#endDate').val();
+    const reportType = $('#reportType').val();
+
+    window.location.href = `/admin/reports/export/?start_date=${startDate}&end_date=${endDate}&report_type=${reportType}`;
+}
+
+function printReport() {
+    window.print();
+}
+</script>
+{% endblock %} 

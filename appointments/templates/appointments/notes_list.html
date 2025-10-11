@@ -1,0 +1,172 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}My Notes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notes-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+    }
+
+    .notes-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .note-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .note-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .note-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .note-content {
+        padding: 1.25rem;
+        white-space: pre-line;
+    }
+
+    .note-footer {
+        padding: 0.75rem 1.25rem;
+        background-color: #f8f9fa;
+        border-top: 1px solid #eee;
+        font-size: 0.875rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .category-badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+        border-radius: 20px;
+    }
+
+    .category-Personal { background-color: #d1e7dd; color: #0f5132; }
+    .category-Medical { background-color: #cfe2ff; color: #084298; }
+    .category-Medication { background-color: #fff3cd; color: #664d03; }
+    .category-Symptom { background-color: #f8d7da; color: #842029; }
+    .category-Other { background-color: #e2e3e5; color: #41464b; }
+
+    .shared-icon {
+        color: #0d6efd;
+    }
+
+    .date-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container notes-container">
+    <div class="notes-header">
+        <h2>My Notes</h2>
+        <a href="{% url 'appointments:create_note' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create New Note
+        </a>
+    </div>
+
+    <div class="filter-section">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="category-filter" class="form-label">Filter by Category</label>
+                <select class="form-select" id="category-filter" name="category">
+                    <option value="">All Categories</option>
+                    {% for value, name in categories.items %}
+                    <option value="{{ value }}" {% if request.GET.category == value %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" placeholder="Search notes..." value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Filter</button>
+                <a href="{% url 'appointments:notes_list' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    {% if notes %}
+        {% for note in notes %}
+        <div class="note-card">
+            <div class="note-header">
+                <h4 class="mb-0">{{ note.title }}</h4>
+                <span class="category-badge category-{{ note.category }}">{{ note.get_category_display }}</span>
+            </div>
+            <div class="note-content">
+                {{ note.content }}
+            </div>
+            <div class="note-footer">
+                <div>
+                    {% if note.share_with_doctor %}
+                    <span class="me-3"><i class="fas fa-share-alt shared-icon"></i> Shared with doctor</span>
+                    {% endif %}
+                    <span class="date-info">Created: {{ note.created_at|date:"M d, Y" }}</span>
+                    {% if note.updated_at and note.updated_at != note.created_at %}
+                    <span class="date-info ms-3">Updated: {{ note.updated_at|date:"M d, Y" }}</span>
+                    {% endif %}
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'appointments:edit_note' note.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'appointments:delete_note' note.id %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-sticky-note"></i>
+            <h4>No notes found</h4>
+            <p class="text-muted">You haven't created any notes yet.</p>
+            <a href="{% url 'appointments:create_note' %}" class="btn btn-primary mt-3">Create Your First Note</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

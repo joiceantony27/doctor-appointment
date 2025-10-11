@@ -1,0 +1,163 @@
+.doctor-profile {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.profile-image img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.doctor-name {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.doctor-specialization {
+    font-size: 18px;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.doctor-rating {
+    margin-bottom: 10px;
+}
+
+.star {
+    color: #ffc107;
+    margin-right: 5px;
+}
+
+.experience {
+    color: #6c757d;
+}
+
+.doctor-location {
+    color: #6c757d;
+}
+
+.share-btn, .save-btn {
+    margin-left: 10px;
+}
+
+.saved {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.consultation-types .btn {
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.consultation-types .btn i {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.consultation-types .btn small {
+    display: block;
+    font-size: 12px;
+    color: #28a745;
+}
+
+.available-days .btn {
+    margin-bottom: 10px;
+}
+
+.time-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.time-slot-btn {
+    min-width: 100px;
+}
+
+.consultation-fee {
+    padding: 15px 0;
+    border-top: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+    margin: 15px 0;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background-color: #000;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#localVideo {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    top: 10px;
+    right: 10px;
+    border-radius: 5px;
+    z-index: 1;
+}
+
+#remoteVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: center;
+}
+
+.education-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.education-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.education-item i {
+    color: #007bff;
+}
+
+.share-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .profile-image img {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .consultation-types .btn {
+        margin-bottom: 10px;
+    }
+    
+    .video-container {
+        height: 300px;
+    }
+} 

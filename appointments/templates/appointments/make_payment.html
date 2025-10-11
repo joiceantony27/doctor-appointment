@@ -1,0 +1,71 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Make Payment - MedApp{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Payment Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Appointment Details</h5>
+                        <p><strong>Doctor:</strong> Dr. {{ doctor.user.get_full_name }}</p>
+                        <p><strong>Date:</strong> {{ appointment.date }}</p>
+                        <p><strong>Time:</strong> {{ appointment.time_slot }}</p>
+                        <p><strong>Consultation Fee:</strong> ${{ fee }}</p>
+                    </div>
+
+                    <form method="post" action="{% url 'appointments:make_payment' appointment.id %}">
+                        {% csrf_token %}
+                        
+                        <!-- Payment Method Selection -->
+                        <div class="mb-4">
+                            <h5>Select Payment Method</h5>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" id="creditCard" value="credit_card" checked>
+                                <label class="form-check-label" for="creditCard">
+                                    Credit Card
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" id="debitCard" value="debit_card">
+                                <label class="form-check-label" for="debitCard">
+                                    Debit Card
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Card Details -->
+                        <div class="mb-4">
+                            <h5>Card Details</h5>
+                            <div class="mb-3">
+                                <label for="cardNumber" class="form-label">Card Number</label>
+                                <input type="text" class="form-control" id="cardNumber" name="card_number" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="expiryDate" class="form-label">Expiry Date</label>
+                                    <input type="text" class="form-control" id="expiryDate" name="expiry_date" placeholder="MM/YY" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cvv" class="form-label">CVV</label>
+                                    <input type="text" class="form-control" id="cvv" name="cvv" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Pay ${{ fee }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

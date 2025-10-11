@@ -1,0 +1,385 @@
+{% extends 'appointments/admin_dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Doctor Management</h6>
+            <div>
+                <button class="btn btn-success me-2" onclick="exportDoctors()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
+                    <i class="fas fa-plus"></i> Add Doctor
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card border-left-primary">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Doctors</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_doctors }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user-md fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card border-left-success">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Available Doctors</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ available_doctors }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card border-left-info">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Today's Appointments</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ today_appointments }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card border-left-warning">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Specializations</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_specializations }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-stethoscope fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section mb-4">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="searchFilter" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="searchFilter" placeholder="Search doctors...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="specializationFilter" class="form-label">Specialization</label>
+                        <select class="form-select" id="specializationFilter">
+                            <option value="">All Specializations</option>
+                            {% for specialization in specializations %}
+                            <option value="{{ specialization.id }}">{{ specialization.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="availabilityFilter" class="form-label">Availability</label>
+                        <select class="form-select" id="availabilityFilter">
+                            <option value="">All</option>
+                            <option value="available">Available</option>
+                            <option value="unavailable">Unavailable</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doctors Table -->
+            <div class="table-responsive">
+                <table class="table table-bordered" id="doctorsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Specialization</th>
+                            <th>Contact</th>
+                            <th>Availability</th>
+                            <th>Schedule</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doctor in doctors %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if doctor.profile_picture %}
+                                        <img src="{{ doctor.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                                    {% else %}
+                                        <i class="fas fa-user-md fa-2x me-2"></i>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">Dr. {{ doctor.user.get_full_name }}</div>
+                                        <small class="text-muted">ID: {{ doctor.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ doctor.specialization.name }}</div>
+                                <small class="text-muted">{{ doctor.experience }} years exp.</small>
+                            </td>
+                            <td>
+                                <div>{{ doctor.user.email }}</div>
+                                <small class="text-muted">{{ doctor.user.phone_number|default:"No phone" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge {% if doctor.is_available %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ doctor.is_available|yesno:"Available,Unavailable" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div>{{ doctor.available_days }}</div>
+                                <small class="text-muted">{{ doctor.available_hours }}</small>
+                            </td>
+                            <td class="action-buttons">
+                                <button class="btn btn-sm btn-info" onclick="viewDoctor({{ doctor.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary" onclick="editDoctor({{ doctor.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm {% if doctor.is_available %}btn-warning{% else %}btn-success{% endif %}"
+                                        onclick="toggleDoctorStatus({{ doctor.id }})">
+                                    <i class="fas {% if doctor.is_available %}fa-ban{% else %}fa-check{% endif %}"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteDoctor({{ doctor.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Doctor Modal -->
+<div class="modal fade" id="addDoctorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Doctor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDoctorForm" method="post" action="{% url 'appointments:admin_doctors' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="specialization" class="form-label">Specialization</label>
+                            <select class="form-select" id="specialization" name="specialization" required>
+                                <option value="">Select Specialization</option>
+                                {% for specialization in specializations %}
+                                <option value="{{ specialization.id }}">{{ specialization.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="qualification" class="form-label">Qualification</label>
+                            <input type="text" class="form-control" id="qualification" name="qualification" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="experience" class="form-label">Experience (years)</label>
+                        <input type="number" class="form-control" id="experience" name="experience" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Bio</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="profile_picture" class="form-label">Profile Picture</label>
+                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                Active
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="addDoctorForm" class="btn btn-primary">Add Doctor</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const table = $('#doctorsTable').DataTable({
+        order: [[0, 'asc']],
+        pageLength: 10,
+        responsive: true
+    });
+
+    // Filter functionality
+    $('#searchFilter').on('keyup', function() {
+        table.search(this.value).draw();
+    });
+
+    $('#specializationFilter, #availabilityFilter').on('change', function() {
+        table.draw();
+    });
+
+    // Custom filtering function
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        const specialization = $('#specializationFilter').val();
+        const availability = $('#availabilityFilter').val();
+
+        if (specialization && !data[1].includes(specialization)) return false;
+
+        if (availability) {
+            const isAvailable = data[3].includes('Available');
+            if (availability === 'available' && !isAvailable) return false;
+            if (availability === 'unavailable' && isAvailable) return false;
+        }
+
+        return true;
+    });
+});
+
+function viewDoctor(doctorId) {
+    $.get(`/admin/doctor/${doctorId}/`, function(data) {
+        Swal.fire({
+            title: 'Doctor Details',
+            html: data,
+            width: '600px'
+        });
+    });
+}
+
+function editDoctor(doctorId) {
+    $.get(`/admin/doctor/${doctorId}/edit/`, function(data) {
+        $('#addDoctorModal .modal-content').html(data);
+        $('#addDoctorModal').modal('show');
+    });
+}
+
+function toggleDoctorStatus(doctorId) {
+    Swal.fire({
+        title: 'Deactivate Doctor',
+        text: "Are you sure you want to deactivate this doctor? They will no longer be able to login or appear in doctor listings.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f6c23e',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, deactivate it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`/admin/deactivate_doctor/${doctorId}/`, {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            }, function(response) {
+                if (response.status === 'success') {
+                    showToast('Doctor has been deactivated successfully');
+                    location.reload();
+                } else {
+                    showToast('Error deactivating doctor: ' + response.message, 'error');
+                }
+            }).fail(function(xhr, status, error) {
+                showToast('Error deactivating doctor: ' + error, 'error');
+            });
+        }
+    });
+}
+
+function deleteDoctor(doctorId) {
+    Swal.fire({
+        title: 'Delete Doctor',
+        text: "This will permanently delete the doctor and all associated data. This action cannot be undone!",
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete permanently',
+        cancelButtonText: 'No, keep doctor'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`/admin/delete_doctor/${doctorId}/`, {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            }, function(response) {
+                if (response.status === 'success') {
+                    showToast('Doctor deleted successfully');
+                    
+                    // Remove the doctor row with animation
+                    const row = $(`button[onclick="deleteDoctor(${doctorId})"]`).closest('tr');
+                    row.fadeOut(500, function() {
+                        $(this).remove();
+                        
+                        // Check if table is empty
+                        if ($('#doctorsTable tbody tr').length === 0) {
+                            $('#doctorsTable tbody').append('<tr><td colspan="6" class="text-center">No doctors available</td></tr>');
+                        }
+                    });
+                } else {
+                    showToast('Error deleting doctor: ' + response.message, 'error');
+                }
+            }).fail(function(xhr, status, error) {
+                showToast('Error deleting doctor: ' + error, 'error');
+            });
+        }
+    });
+}
+
+function exportDoctors() {
+    window.location.href = "{% url 'appointments:export_doctors' %}";
+}
+</script>
+{% endblock %} 

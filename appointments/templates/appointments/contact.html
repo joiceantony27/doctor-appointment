@@ -1,0 +1,83 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-5">Contact Us</h1>
+            
+            <div class="row mb-5">
+                <div class="col-md-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-envelope text-primary fa-3x mb-3"></i>
+                        <h3 class="h5">Email</h3>
+                        <p class="mb-0">support@prescripto.com</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-phone text-primary fa-3x mb-3"></i>
+                        <h3 class="h5">Phone</h3>
+                        <p class="mb-0">+1 (234) 567-8900</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-map-marker-alt text-primary fa-3x mb-3"></i>
+                        <h3 class="h5">Address</h3>
+                        <p class="mb-0">123 Healthcare Ave<br>Medical District<br>New York, NY 10001</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h4 mb-4">Send us a Message</h2>
+                    <form method="POST" action="{% url 'appointments:contact' %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name" class="form-label">Your Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="subject" class="form-label">Subject</label>
+                                    <input type="text" class="form-control" id="subject" name="subject" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="message" class="form-label">Message</label>
+                                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Send Message</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Add animation to success messages
+        $('.alert-success').fadeIn().delay(3000).fadeOut();
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Doctors - Prescripto{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/doctors_list.css' %}" rel="stylesheet">
+<link href="{% static 'css/doctor_images.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Find Specialists & Book Appointments</h1>
+        <p>Browse through our list of expert doctors and book your appointment today</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="Search doctors by name or specialty" id="doctorSearch">
+    </div>
+
+    <div class="row">
+        <!-- Specializations Sidebar -->
+        <div class="col-lg-3">
+            <div class="specializations">
+                <h2>Specializations</h2>
+                <ul class="specialization-list">
+                    <li class="specialization-item active">General Physician</li>
+                    <li class="specialization-item">Gynecologist</li>
+                    <li class="specialization-item">Dermatologist</li>
+                    <li class="specialization-item">Pediatricians</li>
+                    <li class="specialization-item">Neurologist</li>
+                    <li class="specialization-item">Cardiologist</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Doctor Cards -->
+        <div class="col-lg-9">
+            <div class="row g-3">
+                {% for doctor in doctors %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="doctor-card">
+                        {% if doctor.profile_picture and doctor.profile_picture.url %}
+                            <img src="{{ doctor.profile_picture.url }}" alt="{{ doctor.user.get_full_name }}" class="doctor-image">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ doctor.user.get_full_name|urlencode }}&background=0D8ABC&color=fff&size=150" alt="{{ doctor.user.get_full_name }}" class="doctor-image">
+                        {% endif %}
+                        <div class="doctor-info">
+                            <div class="doctor-availability">
+                                <span class="availability-dot {% if doctor.is_available %}available{% else %}unavailable{% endif %}"></span>
+                                <span>{% if doctor.is_available %}Available{% else %}Unavailable{% endif %}</span>
+                            </div>
+                            <h3>{{ doctor.user.get_full_name }}</h3>
+                            <div class="doctor-specialty">{{ doctor.specialization }}</div>
+                            <div class="doctor-qualification">{{ doctor.qualification }}</div>
+                            <div class="doctor-experience">{{ doctor.experience }}+ Years</div>
+                            <div class="doctor-rating">
+                                <span class="rating-star">★</span>
+                                <span class="rating-number">{{ doctor.rating|default:"4.5" }}</span>
+                            </div>
+                            <div class="doctor-fee">₹{{ doctor.consultation_fee }}</div>
+                            <a href="{% url 'appointments:doctor_detail' doctor.id %}" class="btn view-profile-btn">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No doctors found matching your criteria.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('doctorSearch');
+    const doctorCards = document.querySelectorAll('.doctor-card');
+
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        
+        doctorCards.forEach(card => {
+            const doctorName = card.querySelector('h3').textContent.toLowerCase();
+            const doctorSpecialty = card.querySelector('.doctor-specialty').textContent.toLowerCase();
+            
+            if (doctorName.includes(searchTerm) || doctorSpecialty.includes(searchTerm)) {
+                card.closest('.col-lg-4').style.display = '';
+            } else {
+                card.closest('.col-lg-4').style.display = 'none';
+            }
+        });
+    });
+
+    // Specialization filter
+    const specializationItems = document.querySelectorAll('.specialization-item');
+    
+    specializationItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Remove active class from all items
+            specializationItems.forEach(i => i.classList.remove('active'));
+            
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            const specialty = this.textContent.toLowerCase();
+            
+            doctorCards.forEach(card => {
+                const doctorSpecialty = card.querySelector('.doctor-specialty').textContent.toLowerCase();
+                
+                if (specialty === 'all' || doctorSpecialty.includes(specialty)) {
+                    card.closest('.col-lg-4').style.display = '';
+                } else {
+                    card.closest('.col-lg-4').style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

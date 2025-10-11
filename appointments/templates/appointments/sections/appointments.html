@@ -1,0 +1,365 @@
+{% extends 'appointments/admin_dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Appointment Management</h6>
+            <div>
+                <button class="btn btn-success me-2" onclick="exportAppointments()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAppointmentModal">
+                    <i class="fas fa-plus"></i> Add Appointment
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card border-left-primary">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Today's Appointments</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ today_count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card border-left-warning">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Pending Appointments</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card border-left-success">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Completed Today</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_today }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card border-left-danger">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        Cancelled Today</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cancelled_today }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section mb-4">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="dateFilter" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="dateFilter">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="doctorFilter" class="form-label">Doctor</label>
+                        <select class="form-select" id="doctorFilter">
+                            <option value="">All Doctors</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">Dr. {{ doctor.user.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="statusFilter" class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="searchFilter" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="searchFilter" placeholder="Search appointments...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appointments Table -->
+            <div class="table-responsive">
+                <table class="table table-bordered" id="appointmentsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if appointment.patient.profile_picture %}
+                                        <img src="{{ appointment.patient.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                                    {% else %}
+                                        <i class="fas fa-user-circle fa-2x me-2"></i>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ appointment.patient.get_full_name }}</div>
+                                        <small class="text-muted">{{ appointment.patient.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if appointment.doctor.user.profile_picture %}
+                                        <img src="{{ appointment.doctor.user.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                                    {% else %}
+                                        <i class="fas fa-user-md fa-2x me-2"></i>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">Dr. {{ appointment.doctor.user.get_full_name }}</div>
+                                        <small class="text-muted">{{ appointment.doctor.specialization.name }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ appointment.date }}</td>
+                            <td>{{ appointment.time_slot }}</td>
+                            <td>
+                                <span class="badge bg-{{ appointment.status|lower }}">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if appointment.payment %}
+                                    <span class="badge bg-{{ appointment.payment.status|lower }}">
+                                        {{ appointment.payment.get_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Not Paid</span>
+                                {% endif %}
+                            </td>
+                            <td class="action-buttons">
+                                <button class="btn btn-sm btn-info" onclick="viewAppointment({{ appointment.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-primary" onclick="editAppointment({{ appointment.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus({{ appointment.id }}, 'confirmed')">Confirm</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus({{ appointment.id }}, 'completed')">Complete</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus({{ appointment.id }}, 'cancelled')">Cancel</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Appointment Modal -->
+<div class="modal fade" id="addAppointmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAppointmentForm" method="post" action="{% url 'appointments:admin_appointments' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="patient" class="form-label">Patient</label>
+                            <select class="form-select" id="patient" name="patient" required>
+                                <option value="">Select Patient</option>
+                                {% for patient in patients %}
+                                <option value="{{ patient.id }}">{{ patient.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="doctor" class="form-label">Doctor</label>
+                            <select class="form-select" id="doctor" name="doctor" required>
+                                <option value="">Select Doctor</option>
+                                {% for doctor in doctors %}
+                                <option value="{{ doctor.id }}">Dr. {{ doctor.user.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="time_slot" class="form-label">Time Slot</label>
+                            <select class="form-select" id="time_slot" name="time_slot" required>
+                                <option value="">Select Time Slot</option>
+                                <!-- Time slots will be populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="addAppointmentForm" class="btn btn-primary">Add Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const table = $('#appointmentsTable').DataTable({
+        order: [[2, 'desc'], [3, 'asc']],
+        pageLength: 10,
+        responsive: true
+    });
+
+    // Filter functionality
+    $('#dateFilter, #doctorFilter, #statusFilter').on('change', function() {
+        table.draw();
+    });
+
+    $('#searchFilter').on('keyup', function() {
+        table.search(this.value).draw();
+    });
+
+    // Custom filtering function
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        const date = $('#dateFilter').val();
+        const doctor = $('#doctorFilter').val();
+        const status = $('#statusFilter').val();
+
+        if (date && data[2] !== date) return false;
+        if (doctor && !data[1].includes(doctor)) return false;
+        if (status && !data[4].includes(status)) return false;
+        return true;
+    });
+
+    // Load available time slots when doctor and date are selected
+    $('#doctor, #date').on('change', function() {
+        const doctorId = $('#doctor').val();
+        const date = $('#date').val();
+        if (doctorId && date) {
+            loadAvailableTimeSlots(doctorId, date);
+        }
+    });
+});
+
+function loadAvailableTimeSlots(doctorId, date) {
+    $.get(`/admin/doctor/${doctorId}/available-slots/${date}/`, function(data) {
+        const timeSlotSelect = $('#time_slot');
+        timeSlotSelect.empty().append('<option value="">Select Time Slot</option>');
+        data.slots.forEach(slot => {
+            timeSlotSelect.append(`<option value="${slot}">${slot}</option>`);
+        });
+    });
+}
+
+function viewAppointment(appointmentId) {
+    $.get(`/admin/appointment/${appointmentId}/`, function(data) {
+        Swal.fire({
+            title: 'Appointment Details',
+            html: data,
+            width: '600px'
+        });
+    });
+}
+
+function editAppointment(appointmentId) {
+    $.get(`/admin/appointment/${appointmentId}/edit/`, function(data) {
+        $('#addAppointmentModal .modal-content').html(data);
+        $('#addAppointmentModal').modal('show');
+    });
+}
+
+function updateStatus(appointmentId, status) {
+    Swal.fire({
+        title: 'Update Status',
+        text: `Are you sure you want to mark this appointment as ${status}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, update it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`/admin/appointment/${appointmentId}/update-status/`, {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'status': status
+            }, function(response) {
+                if (response.status === 'success') {
+                    showToast('Appointment status updated successfully');
+                    location.reload();
+                } else {
+                    showToast('Error updating appointment status', 'error');
+                }
+            });
+        }
+    });
+}
+
+function exportAppointments() {
+    window.location.href = "{% url 'appointments:export_appointments' %}";
+}
+</script>
+{% endblock %} 

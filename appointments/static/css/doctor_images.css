@@ -1,0 +1,24 @@
+/* Doctor Image Styles */
+img.doctor-image {
+    width: 220px !important;
+    height: 220px !important;
+    border-radius: 0 !important;
+    object-fit: cover !important;
+    margin-bottom: 15px !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+@media (max-width: 992px) {
+    img.doctor-image {
+        width: 180px !important;
+        height: 180px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    img.doctor-image {
+        width: 160px !important;
+        height: 160px !important;
+    }
+} 

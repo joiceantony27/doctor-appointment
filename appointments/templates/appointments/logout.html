@@ -1,0 +1,11 @@
+{% extends 'appointments/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-success">
+        <h4>Successfully logged out!</h4>
+        <p>You have been successfully logged out of your account.</p>
+        <p><a href="{% url 'appointments:login' %}" class="btn btn-primary">Login again</a></p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,327 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Book Appointment - Prescripto{% endblock %}
+
+{% block content %}
+<style>
+    .booking-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .doctor-profile {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+    }
+
+    .doctor-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .doctor-info h1 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 2rem;
+    }
+
+    .doctor-specialty {
+        color: #3498db;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .doctor-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
+    .booking-form {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        outline: none;
+    }
+
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .time-slot {
+        padding: 0.8rem;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .time-slot:hover {
+        background: #3498db;
+        color: white;
+    }
+
+    .time-slot.selected {
+        background: #3498db;
+        color: white;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 2rem;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .related-doctors {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid #f0f0f0;
+    }
+
+    .related-doctors h2 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-size: 1.8rem;
+    }
+
+    .related-doctors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .related-doctor-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .related-doctor-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .related-doctor-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .related-doctor-info {
+        padding: 1rem;
+    }
+
+    .related-doctor-name {
+        font-size: 1.2rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .related-doctor-specialty {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .booking-container {
+        animation: fadeIn 0.5s ease forwards;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Book Appointment with Dr. {{ doctor.user.get_full_name }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Doctor Information</h5>
+                            <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
+                            <p><strong>Experience:</strong> {{ doctor.experience }} years</p>
+                            <p><strong>Consultation Fee:</strong> ${{ doctor.consultation_fee }}</p>
+                            <p><strong>Average Rating:</strong> {{ doctor.get_average_rating }} stars</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Available Time Slots</h5>
+                            <div id="available-slots">
+                                {% if available_slots %}
+                                    <ul class="list-group">
+                                        {% for slot in available_slots %}
+                                            <li class="list-group-item">{{ slot }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p>No available slots for the selected date.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" id="appointmentForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Select Date</label>
+                            <input type="date" class="form-control" id="date" name="date" 
+                                   min="{{ min_date }}" max="{{ max_date }}"
+                                   value="{{ selected_date|date:'Y-m-d' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="time_slot" class="form-label">Select Time Slot</label>
+                            <select class="form-select" id="time_slot" name="time_slot">
+                                <option value="">Select a time slot</option>
+                                {% for slot in available_slots %}
+                                    <option value="{{ slot }}">{{ slot }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for Visit</label>
+                            {{ form.reason }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Book Appointment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('date');
+    const timeSlotSelect = document.getElementById('time_slot');
+    const form = document.getElementById('appointmentForm');
+    const doctorId = {{ doctor.id }};
+
+    // Update available time slots when date changes
+    dateInput.addEventListener('change', function() {
+        const selectedDate = this.value;
+        if (selectedDate) {
+            fetch(`/appointments/get-available-slots/${doctorId}/?date=${selectedDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    
+                    // Update time slot options
+                    const slots = data.available_slots;
+                    const options = slots.map(slot => `<option value="${slot}">${slot}</option>`);
+                    timeSlotSelect.innerHTML = `<option value="">Select a time slot</option>${options.join('')}`;
+                    
+                    // Show available slots
+                    const slotsContainer = document.getElementById('available-slots');
+                    if (slots.length === 0) {
+                        slotsContainer.innerHTML = '<p>No available slots for the selected date.</p>';
+                    } else {
+                        slotsContainer.innerHTML = `
+                            <ul class="list-group">
+                                ${slots.map(slot => `<li class="list-group-item">${slot}</li>`).join('')}
+                            </ul>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to fetch available time slots');
+                });
+        }
+    });
+
+    // Validate form before submission
+    form.addEventListener('submit', function(e) {
+        if (!timeSlotSelect.value) {
+            e.preventDefault();
+            alert('Please select a time slot');
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

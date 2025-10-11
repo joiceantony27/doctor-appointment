@@ -1,0 +1,101 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Appointment Details</h5>
+                    <div>
+                        <span class="badge {% if appointment.status == 'pending' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'completed' %}bg-info{% else %}bg-danger{% endif %}">
+                            {{ appointment.status|title }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="fw-bold">Doctor:</label>
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'img/doctor-placeholder.jpg' %}" 
+                                         alt="{{ appointment.doctor.user.get_full_name }}" 
+                                         class="rounded-circle" 
+                                         style="width: 40px; height: 40px; object-fit: cover; margin-right: 10px;">
+                                    <div>
+                                        <h6 class="mb-0">{{ appointment.doctor.user.get_full_name }}</h6>
+                                        <small class="text-muted">{{ appointment.doctor.specialization }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Date:</label>
+                                <p>{{ appointment.date|date:"F j, Y" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Time Slot:</label>
+                                <p>{{ appointment.time_slot }}</p>
+                            </div>
+                            {% if appointment.appointment_type %}
+                            <div class="mb-3">
+                                <label class="fw-bold">Type:</label>
+                                <p>{{ appointment.appointment_type }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="fw-bold">Patient:</label>
+                                <p>{{ appointment.patient.user.get_full_name }}</p>
+                            </div>
+                            {% if appointment.payment %}
+                            <div class="mb-3">
+                                <label class="fw-bold">Payment Status:</label>
+                                <p class="{% if appointment.payment_status == 'paid' %}text-success{% else %}text-warning{% endif %}">
+                                    {{ appointment.payment_status|title }}
+                                </p>
+                            </div>
+                            {% endif %}
+                            {% if appointment.cancellation_reason %}
+                            <div class="mb-3">
+                                <label class="fw-bold">Cancellation Reason:</label>
+                                <p>{{ appointment.cancellation_reason }}</p>
+                            </div>
+                            {% endif %}
+                            {% if appointment.response_status == 'rejected' %}
+                            <div class="mb-3">
+                                <label class="fw-bold">Rejection Reason:</label>
+                                <p>{{ appointment.rejection_reason }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if is_patient %}
+                    <div class="mt-4">
+                        <h6>Actions:</h6>
+                        <div class="btn-group">
+                            {% if appointment.status == 'pending' %}
+                            <a href="{% url 'appointments:cancel_appointment' appointment.id %}" 
+                               class="btn btn-danger" 
+                               onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                                Cancel Appointment
+                            </a>
+                            {% endif %}
+                            {% if appointment.status == 'completed' %}
+                            <a href="{% url 'appointments:add_review' appointment.id %}" 
+                               class="btn btn-primary">
+                                Add Review
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

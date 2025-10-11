@@ -1,0 +1,268 @@
+{% extends 'appointments/admin_dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Working Hours Management</h6>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addWorkingHoursModal">
+                <i class="fas fa-plus"></i> Add Working Hours
+            </button>
+        </div>
+        <div class="card-body">
+            <!-- Filter Section -->
+            <div class="filter-section mb-4">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="doctorFilter" class="form-label">Doctor</label>
+                        <select class="form-select" id="doctorFilter">
+                            <option value="">All Doctors</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">Dr. {{ doctor.user.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="dayFilter" class="form-label">Day of Week</label>
+                        <select class="form-select" id="dayFilter">
+                            <option value="">All Days</option>
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                            <option value="5">Saturday</option>
+                            <option value="6">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="statusFilter" class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Working Hours Table -->
+            <div class="table-responsive">
+                <table class="table table-bordered" id="workingHoursTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Day</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for working_hour in working_hours %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if working_hour.doctor.user.profile_picture %}
+                                        <img src="{{ working_hour.doctor.user.profile_picture.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                                    {% else %}
+                                        <i class="fas fa-user-md fa-2x me-2"></i>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">Dr. {{ working_hour.doctor.user.get_full_name }}</div>
+                                        <small class="text-muted">{{ working_hour.doctor.specialization.name }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ working_hour.get_day_of_week_display }}</td>
+                            <td>{{ working_hour.start_time }}</td>
+                            <td>{{ working_hour.end_time }}</td>
+                            <td>
+                                <span class="badge {% if working_hour.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ working_hour.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                            <td class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="editWorkingHours({{ working_hour.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm {% if working_hour.is_active %}btn-warning{% else %}btn-success{% endif %}"
+                                        onclick="toggleWorkingHoursStatus({{ working_hour.id }})">
+                                    <i class="fas {% if working_hour.is_active %}fa-ban{% else %}fa-check{% endif %}"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteWorkingHours({{ working_hour.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Working Hours Modal -->
+<div class="modal fade" id="addWorkingHoursModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Working Hours</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addWorkingHoursForm" method="post" action="{% url 'appointments:admin_working_hours' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="doctor" class="form-label">Doctor</label>
+                        <select class="form-select" id="doctor" name="doctor" required>
+                            <option value="">Select Doctor</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">Dr. {{ doctor.user.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="day_of_week" class="form-label">Day of Week</label>
+                        <select class="form-select" id="day_of_week" name="day_of_week" required>
+                            <option value="">Select Day</option>
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                            <option value="5">Saturday</option>
+                            <option value="6">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                Active
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="addWorkingHoursForm" class="btn btn-primary">Add Working Hours</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const table = $('#workingHoursTable').DataTable({
+        order: [[1, 'asc'], [2, 'asc']],
+        pageLength: 10,
+        responsive: true
+    });
+
+    // Filter functionality
+    $('#doctorFilter, #dayFilter, #statusFilter').on('change', function() {
+        table.draw();
+    });
+
+    // Custom filtering function
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        const doctor = $('#doctorFilter').val();
+        const day = $('#dayFilter').val();
+        const status = $('#statusFilter').val();
+
+        if (doctor && !data[0].includes(doctor)) return false;
+        if (day && data[1] !== day) return false;
+        if (status) {
+            const isActive = data[4].includes('Active');
+            if (status === 'active' && !isActive) return false;
+            if (status === 'inactive' && isActive) return false;
+        }
+        return true;
+    });
+
+    // Validate time inputs
+    $('#start_time, #end_time').on('change', function() {
+        const startTime = $('#start_time').val();
+        const endTime = $('#end_time').val();
+        if (startTime && endTime && startTime >= endTime) {
+            showToast('End time must be after start time', 'error');
+            $(this).val('');
+        }
+    });
+});
+
+function editWorkingHours(workingHoursId) {
+    $.get(`/admin/working-hours/${workingHoursId}/edit/`, function(data) {
+        $('#addWorkingHoursModal .modal-content').html(data);
+        $('#addWorkingHoursModal').modal('show');
+    });
+}
+
+function toggleWorkingHoursStatus(workingHoursId) {
+    Swal.fire({
+        title: 'Change Status',
+        text: "This will change the working hours status",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, change it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`/admin/working-hours/${workingHoursId}/toggle-status/`, {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            }, function(response) {
+                if (response.status === 'success') {
+                    showToast('Working hours status updated successfully');
+                    location.reload();
+                } else {
+                    showToast('Error updating working hours status', 'error');
+                }
+            });
+        }
+    });
+}
+
+function deleteWorkingHours(workingHoursId) {
+    Swal.fire({
+        title: 'Delete Working Hours',
+        text: "Are you sure you want to delete these working hours?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`/admin/working-hours/${workingHoursId}/delete/`, {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            }, function(response) {
+                if (response.status === 'success') {
+                    showToast('Working hours deleted successfully');
+                    location.reload();
+                } else {
+                    showToast('Error deleting working hours', 'error');
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,793 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Welcome to Prescripto - Your Healthcare Partner{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-banner {
+    position: relative;
+    min-height: 85vh;
+    overflow: hidden;
+    margin-top: -76px;
+    background: url("{% static 'images/header.jpg' %}") no-repeat center center;
+    background-size: cover;
+}
+
+.video-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 1;
+    object-fit: cover;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8));
+    z-index: 2;
+}
+
+.hero-content {
+    padding: 8rem 0;
+    position: relative;
+    z-index: 3;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.hero-stats {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-top: 3rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.hero-cta {
+    margin-top: 2rem;
+}
+
+.btn-hero {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+.btn-hero-primary {
+    background: linear-gradient(45deg, #2196f3, #1976d2);
+    border: none;
+    color: white;
+}
+
+.btn-hero-primary:hover {
+    background: linear-gradient(45deg, #1976d2, #1565c0);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-hero-outline {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+}
+
+.btn-hero-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+    .hero-stats {
+        margin-top: 2rem;
+    }
+    .stat-number {
+        font-size: 2rem;
+    }
+}
+
+.z-index-1 {
+    z-index: 1;
+}
+
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.feature-icon {
+    width: 90px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(45deg, #e3f2fd, #bbdefb);
+    transition: transform 0.3s ease;
+}
+
+.feature-icon i {
+    font-size: 2.5rem;
+    background: linear-gradient(45deg, #1976d2, #2196f3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.card:hover .feature-icon {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+}
+
+.specialization-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.5s ease;
+    position: relative;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.specialization-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #2196f3, #1976d2);
+    opacity: 0;
+    transition: all 0.5s ease;
+    z-index: 1;
+}
+
+.specialization-card:hover::before {
+    opacity: 0.9;
+}
+
+.specialization-card .card-body {
+    padding: 2rem 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.specialization-card:hover .card-title,
+.specialization-card:hover .card-text {
+    color: white;
+    transform: translateY(-5px);
+}
+
+.specialization-card .card-title,
+.specialization-card .card-text {
+    transition: all 0.5s ease;
+}
+
+.specialization-card .icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(33, 150, 243, 0.1);
+    transition: all 0.5s ease;
+}
+
+.specialization-card:hover .icon-wrapper {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1) rotate(360deg);
+}
+
+.specialization-card .icon-wrapper i {
+    font-size: 2.5rem;
+    color: #2196f3;
+    transition: all 0.5s ease;
+}
+
+.specialization-card:hover .icon-wrapper i {
+    color: white;
+}
+
+.cta-section {
+    background: linear-gradient(45deg, #1976d2, #2196f3);
+    padding: 5rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: url('https://img.freepik.com/free-vector/abstract-medical-background-with-hexagons-pattern_1017-26363.jpg');
+    background-size: cover;
+    opacity: 0.1;
+}
+
+.cta-content {
+    position: relative;
+    z-index: 1;
+}
+
+.cta-image {
+    position: relative;
+    z-index: 1;
+}
+
+.cta-image img {
+    border: 5px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.cta-image:hover img {
+    transform: scale(1.05);
+}
+
+.min-vh-75 {
+    min-height: 75vh;
+}
+
+.text-primary {
+    color: #0d6efd !important;
+}
+
+.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0b5ed7;
+}
+
+.btn-outline-primary {
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.shadow-sm {
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+}
+
+.rounded-circle {
+    border-radius: 50% !important;
+}
+
+.badge {
+    padding: 0.5em 1em;
+    font-weight: 500;
+}
+
+/* Marquee Styles */
+.marquee-container {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.marquee-content {
+    display: block;
+    width: 200%;
+    animation: marquee 25s linear infinite;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Banner Section -->
+<div class="hero-banner">
+    <video autoplay muted loop playsinline class="video-background">
+        <source src="https://cdn.pixabay.com/vimeo/475517999/medical-71096.mp4?width=1280&hash=f2524e15b52c0c5b4384e4555d13c7c5c22b56e3" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="overlay"></div>
+    <div class="hero-content">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <h1 class="hero-title text-white animate__animated animate__fadeInUp">
+                        Your Health Journey Begins Here
+                    </h1>
+                    <p class="hero-subtitle text-white mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+                        Connect with top healthcare professionals and experience personalized care like never before.
+                    </p>
+                    <div class="hero-cta animate__animated animate__fadeInUp animate__delay-2s">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'appointments:doctor_list' %}" class="btn btn-hero btn-hero-primary me-3">Find Your Doctor</a>
+                            <a href="{% url 'appointments:patient_dashboard' %}" class="btn btn-hero btn-hero-outline">My Care Portal</a>
+                        {% else %}
+                            <a href="{% url 'appointments:register' %}" class="btn btn-hero btn-hero-primary me-3">Get Started</a>
+                            <a href="{% url 'appointments:login' %}" class="btn btn-hero btn-hero-outline">Member Login</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="hero-stats animate__animated animate__fadeInRight animate__delay-1s">
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-number">50+</div>
+                                    <div class="stat-label">Specialists</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-number">1000+</div>
+                                    <div class="stat-label">Patients</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-number">24/7</div>
+                                    <div class="stat-label">Support</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Specializations Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold text-primary">Our Specializations</h2>
+            <p class="lead text-muted">Expert care across multiple medical fields</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4 col-lg-4">
+                <div class="card specialization-card">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h3 class="h5 fw-bold text-center">Cardiology</h3>
+                        <p class="text-muted text-center mb-0">Expert care for heart conditions with state-of-the-art diagnostics and treatment</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-4">
+                <div class="card specialization-card">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="h5 fw-bold text-center">Neurology</h3>
+                        <p class="text-muted text-center mb-0">Comprehensive care for neurological disorders and brain health</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-4">
+                <div class="card specialization-card">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-bone"></i>
+                        </div>
+                        <h3 class="h5 fw-bold text-center">Orthopedics</h3>
+                        <p class="text-muted text-center mb-0">Specialized treatment for bone, joint, and muscle conditions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-4">
+                <div class="card specialization-card">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-baby"></i>
+                        </div>
+                        <h3 class="h5 fw-bold text-center">Pediatrics</h3>
+                        <p class="text-muted text-center mb-0">Comprehensive healthcare services for children of all ages</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-4">
+                <div class="card specialization-card">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-teeth"></i>
+                        </div>
+                        <h3 class="h5 fw-bold text-center">Dental Care</h3>
+                        <p class="text-muted text-center mb-0">Complete dental services from routine check-ups to advanced procedures</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-4">
+                <div class="card specialization-card">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h3 class="h5 fw-bold text-center">Ophthalmology</h3>
+                        <p class="text-muted text-center mb-0">Expert eye care services and advanced vision treatments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Scrolling Banner -->
+<section class="py-3 bg-white border-top border-bottom">
+    <div class="container-fluid px-0">
+        <div class="marquee-container overflow-hidden">
+            <div class="marquee-content">
+                <div class="d-flex align-items-center">
+                    <span class="h4 mb-0 text-primary fw-bold px-4">*We are your trusted Friend*</span>
+                    <span class="h4 mb-0 text-primary fw-bold px-4">*We are your trusted Friend*</span>
+                    <span class="h4 mb-0 text-primary fw-bold px-4">*We are your trusted Friend*</span>
+                    <span class="h4 mb-0 text-primary fw-bold px-4">*We are your trusted Friend*</span>
+                    <span class="h4 mb-0 text-primary fw-bold px-4">*We are your trusted Friend*</span>
+                    <span class="h4 mb-0 text-primary fw-bold px-4">*We are your trusted Friend*</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Service Info Cards Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4" style="background-color: #e6f2ff;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-white p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-info-circle fs-4 text-dark"></i>
+                            </div>
+                            <h3 class="h5 fw-bold text-uppercase mb-0">Visitor Information</h3>
+                        </div>
+                        <p class="text-muted mb-3">View all information of the visitors and follow all terms & conditions.</p>
+                        <a href="{% url 'appointments:visitor_information' %}" class="text-decoration-none d-flex align-items-center">
+                            <span class="me-2">Learn More</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4" style="background-color: #e6fff0;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-white p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user-md fs-4 text-dark"></i>
+                            </div>
+                            <h3 class="h5 fw-bold text-uppercase mb-0">Find a Doctor</h3>
+                        </div>
+                        <p class="text-muted mb-3">View all information of the visitors and follow all terms & conditions.</p>
+                        <a href="{% url 'appointments:doctor_list' %}" class="text-decoration-none d-flex align-items-center">
+                            <span class="me-2">Learn More</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4" style="background-color: #f0e6ff;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-white p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-hospital fs-4 text-dark"></i>
+                            </div>
+                            <h3 class="h5 fw-bold text-uppercase mb-0">Our Locations</h3>
+                        </div>
+                        <p class="text-muted mb-3">View all information of the visitors and follow all terms & conditions.</p>
+                        <a href="#" class="text-decoration-none d-flex align-items-center">
+                            <span class="me-2">Learn More</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4" style="background-color: #fff0e6;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-white p-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-phone fs-4 text-dark"></i>
+                            </div>
+                            <h3 class="h5 fw-bold text-uppercase mb-0">Connect With Us</h3>
+                        </div>
+                        <p class="text-muted mb-3">View all information of the visitors and follow all terms & conditions.</p>
+                        <a href="{% url 'appointments:contact' %}" class="text-decoration-none d-flex align-items-center">
+                            <span class="me-2">Learn More</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Patient Care & Amenities Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold text-primary">We Provide Finnest Patient's Care & Amenities</h2>
+                <p class="lead mt-3">Embrace a world of comprehensive healthcare where your well-being takes center stage. At Meca, we're dedicated to providing you with personalized and compassionate medical services.</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p class="mb-0">Seamless Care</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p class="mb-0">Patient-Centered Care</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p class="mb-0">Warm and Welcoming Environment</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p class="mb-0">Personalized Approach</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p class="mb-0">Comprehensive Care</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p class="mb-0">Cutting-Edge Technology</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p class="mb-0">Expert Doctors</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <p class="mb-0">Positive Reviews</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{% url 'appointments:about' %}" class="btn btn-primary">
+                        <i class="fas fa-info-circle me-2"></i> More About Us
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="position-relative">
+                    <img src="https://img.freepik.com/free-photo/medical-banner-with-doctor-wearing-goggles_23-2149611193.jpg" alt="Doctor in Surgery" class="img-fluid rounded-lg shadow-lg" />
+                    <div class="position-absolute top-0 end-0 bg-light rounded-lg shadow p-3 m-3">
+                        <div class="text-center">
+                            <h3 class="display-4 text-primary fw-bold">5K+</h3>
+                            <p class="text-muted mb-0">PATIENT'S REVIEWS</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold text-primary">What Our Users Say</h2>
+            <p class="lead text-muted">Hear from doctors and patients who use our platform</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="bg-primary text-white rounded-circle p-3 me-3">
+                                <span class="h5 mb-0">S</span>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Sarah Johnson</h5>
+                                <small class="text-muted">Patient</small>
+                            </div>
+                        </div>
+                        <p class="mb-3">"Prescripto has transformed how I schedule doctor visits. The process is so streamlined, and I love being able to see doctor availability in real-time!"</p>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="bg-primary text-white rounded-circle p-3 me-3">
+                                <span class="h5 mb-0">D</span>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Dr. Michael Chen</h5>
+                                <small class="text-muted">Cardiologist</small>
+                            </div>
+                        </div>
+                        <p class="mb-3">"As a healthcare provider, this platform has significantly reduced no-shows and helped me manage my schedule more efficiently."</p>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="bg-primary text-white rounded-circle p-3 me-3">
+                                <span class="h5 mb-0">R</span>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Robert Davis</h5>
+                                <small class="text-muted">Patient</small>
+                            </div>
+                        </div>
+                        <p class="mb-3">"I needed to see a specialist urgently, and thanks to this platform, I found an available appointment the very next day!"</p>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="cta-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 cta-content">
+                <h2 class="display-4 text-white fw-bold mb-4">Ready to Get Started?</h2>
+                <p class="lead text-white mb-4 opacity-90">Join thousands of satisfied patients who trust Prescripto for their healthcare needs. Experience healthcare management like never before.</p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'appointments:register' %}" class="btn btn-light btn-lg px-4 fw-bold">Create Your Account</a>
+                    <a href="{% url 'appointments:doctor_list' %}" class="btn btn-outline-light btn-lg px-4">Find Doctors</a>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center cta-image">
+                <img src="https://img.freepik.com/free-photo/medical-team-putting-their-hands-together_1170-2176.jpg" 
+                     alt="Medical Team" 
+                     class="img-fluid rounded-lg shadow-lg" 
+                     style="max-width: 400px;">
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.querySelector('.video-background');
+    
+    // Fallback to image if video fails to load
+    video.addEventListener('error', function() {
+        video.style.display = 'none';
+        document.querySelector('.hero-banner').style.backgroundImage = 
+            'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url("https://images.pexels.com/photos/4167541/pexels-photo-4167541.jpeg?auto=compress&cs=tinysrgb&w=1920")';
+    });
+
+    // Add loading class to body when video is loading
+    video.addEventListener('loadstart', function() {
+        document.body.classList.add('video-loading');
+    });
+
+    // Remove loading class when video can play
+    video.addEventListener('canplay', function() {
+        document.body.classList.remove('video-loading');
+    });
+});
+</script>
+{% endblock %} 

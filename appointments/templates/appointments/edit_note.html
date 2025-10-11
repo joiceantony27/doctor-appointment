@@ -1,0 +1,101 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Edit Note{% endblock %}
+
+{% block extra_css %}
+<style>
+    .note-form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .note-form label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .note-form .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .note-form textarea {
+        min-height: 200px;
+        resize: vertical;
+    }
+    
+    .form-check {
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-submit {
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+    }
+
+    .meta-info {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container note-form-container">
+    <h2 class="mb-4">Edit Note</h2>
+    
+    <div class="meta-info">
+        <div>Created: {{ note.created_at|date:"F d, Y \a\t h:i A" }}</div>
+        {% if note.updated_at and note.updated_at != note.created_at %}
+        <div>Last updated: {{ note.updated_at|date:"F d, Y \a\t h:i A" }}</div>
+        {% endif %}
+    </div>
+    
+    <form method="post" class="note-form">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="title">Title</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ note.title }}" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="category">Category</label>
+            <select class="form-select form-control" id="category" name="category" required>
+                {% for value, name in categories %}
+                <option value="{{ value }}" {% if note.category == value %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label for="content">Content</label>
+            <textarea class="form-control" id="content" name="content" rows="6" required>{{ note.content }}</textarea>
+        </div>
+        
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="share_with_doctor" name="share_with_doctor" {% if note.share_with_doctor %}checked{% endif %}>
+            <label class="form-check-label" for="share_with_doctor">
+                Share with doctor
+            </label>
+            <div class="form-text text-muted">
+                If checked, your doctor will be able to see this note during consultations.
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'appointments:notes_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary btn-submit">Update Note</button>
+        </div>
+    </form>
+</div>
+{% endblock %} 

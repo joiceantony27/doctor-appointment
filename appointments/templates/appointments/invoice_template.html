@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Invoice #{{ payment.invoice_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .15);
+        }
+        .header {
+            padding: 10px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+            color: #2c3e50;
+        }
+        .info {
+            margin-bottom: 40px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .info-block {
+            flex: 1;
+        }
+        .label {
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        .value {
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <div class="header">
+            <h1 class="title">INVOICE</h1>
+            <p>Invoice #: {{ payment.invoice_number }}</p>
+            <p>Date: {{ payment.created_at|date:"F d, Y" }}</p>
+        </div>
+
+        <div class="info">
+            <div class="info-row">
+                <div class="info-block">
+                    <div class="label">From:</div>
+                    <div class="value">Dr. {{ doctor.user.get_full_name }}</div>
+                    <div>{{ doctor.specialization }}</div>
+                    <div>{{ doctor.clinic_address|default:"" }}</div>
+                </div>
+                <div class="info-block" style="text-align: right;">
+                    <div class="label">To:</div>
+                    <div class="value">{{ patient.get_full_name }}</div>
+                    <div>{{ patient.email }}</div>
+                    <div>{{ patient.phone_number }}</div>
+                </div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th style="text-align: right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Consultation Fee</td>
+                    <td style="text-align: right;">₹{{ payment.amount }}</td>
+                </tr>
+                <tr>
+                    <td>GST (18%)</td>
+                    <td style="text-align: right;">₹{{ payment.tax }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td>Total Amount</td>
+                    <td style="text-align: right;">₹{{ payment.total_amount }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info">
+            <div class="label">Appointment Details:</div>
+            <div>Date: {{ appointment.appointment_date|date:"F d, Y" }}</div>
+            <div>Time: {{ appointment.appointment_time|time:"g:i A" }}</div>
+            <div>Transaction ID: {{ payment.transaction_id }}</div>
+            <div>Payment Method: {{ payment.payment_method }}</div>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for choosing our service!</p>
+            <p>For any queries, please contact us at support@medapp.com</p>
+        </div>
+    </div>
+</body>
+</html> 

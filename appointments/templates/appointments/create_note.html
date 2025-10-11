@@ -1,0 +1,169 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Create Note{% endblock %}
+
+{% block extra_css %}
+<style>
+    .note-form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .note-form label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .note-form .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .note-form textarea {
+        min-height: 200px;
+        resize: vertical;
+    }
+    
+    .form-check {
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-submit {
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+    }
+    
+    .note-type-selector {
+        margin-bottom: 2rem;
+    }
+    
+    .note-type-btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        border-radius: 8px;
+    }
+    
+    .doctor-note-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container note-form-container">
+    <h2 class="mb-4">Create New Note</h2>
+    
+    <!-- Note Type Selector -->
+    <div class="note-type-selector d-flex justify-content-center mb-4">
+        <div class="btn-group" role="group" aria-label="Note type">
+            <button type="button" class="btn btn-outline-primary note-type-btn active" id="personal-note-btn">Personal Note</button>
+            <button type="button" class="btn btn-outline-primary note-type-btn" id="doctor-note-btn">Message to Doctor</button>
+        </div>
+    </div>
+    
+    <!-- Personal Note Form -->
+    <div id="personal-note-form">
+        <form method="post" class="note-form" action="{% url 'appointments:create_note' %}">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="title">Title</label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="Enter note title" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="category">Category</label>
+                <select class="form-select form-control" id="category" name="category" required>
+                    <option value="" selected disabled>Select a category</option>
+                    {% for value, name in categories %}
+                    <option value="{{ value }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="content">Content</label>
+                <textarea class="form-control" id="content" name="content" rows="6" placeholder="Write your note here..." required></textarea>
+            </div>
+            
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="share_with_doctor" name="share_with_doctor">
+                <label class="form-check-label" for="share_with_doctor">
+                    Share with doctor
+                </label>
+                <div class="form-text text-muted">
+                    If checked, your doctor will be able to see this note during consultations.
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'appointments:notes_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-submit">Save Note</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Doctor Note Form -->
+    <div id="doctor-note-form" style="display: none;">
+        <form method="post" class="note-form" action="{% url 'appointments:create_doctor_note' %}">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="doctor">Select Doctor</label>
+                <select class="form-select form-control" id="doctor" name="doctor" required>
+                    <option value="" selected disabled>Select a doctor</option>
+                    {% for doctor in doctors %}
+                    <option value="{{ doctor.id }}">Dr. {{ doctor.user.get_full_name }} ({{ doctor.specialization.name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="message">Your Message</label>
+                <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message to the doctor here..." required></textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'appointments:notes_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-submit">Send to Doctor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const personalNoteBtn = document.getElementById('personal-note-btn');
+        const doctorNoteBtn = document.getElementById('doctor-note-btn');
+        const personalNoteForm = document.getElementById('personal-note-form');
+        const doctorNoteForm = document.getElementById('doctor-note-form');
+        
+        personalNoteBtn.addEventListener('click', function() {
+            personalNoteBtn.classList.add('active');
+            doctorNoteBtn.classList.remove('active');
+            personalNoteForm.style.display = 'block';
+            doctorNoteForm.style.display = 'none';
+        });
+        
+        doctorNoteBtn.addEventListener('click', function() {
+            doctorNoteBtn.classList.add('active');
+            personalNoteBtn.classList.remove('active');
+            doctorNoteForm.style.display = 'block';
+            personalNoteForm.style.display = 'none';
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %} 

@@ -1,0 +1,569 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+{% load appointment_filters %}
+
+{% block title %}Doctor Dashboard - Prescripto{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Add CSRF token for AJAX requests -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<div class="container py-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    {% if user.doctor.profile_picture %}
+                    <img src="{{ user.doctor.profile_picture.url }}" alt="Doctor Profile" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                    {% else %}
+                    <img src="{% static 'images/default-doctor.png' %}" alt="Doctor Profile" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                    {% endif %}
+                    <div>
+                        <h1 class="h2 mb-0">Welcome, Dr. {{ user.get_full_name }}</h1>
+                        <p class="text-muted">Manage your appointments and schedule</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                {% if user.user_type == 'doctor' %}
+                <a href="{% url 'appointments:edit_doctor_profile' doctor_id=user.doctor.id %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                </a>
+                {% else %}
+                <a href="{% url 'appointments:edit_patient_profile' %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mb-3">
+        <button onclick="window.history.back()" class="btn btn-secondary p-2 rounded">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </button>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Appointments</h5>
+                    <h2 class="card-value">{{ today_appointments_count }}</h2>
+                    <p class="card-text">Appointments scheduled for today</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Requests</h5>
+                    <h2 class="card-value">{{ pending_appointments_count }}</h2>
+                    <p class="card-text">Appointments awaiting your response</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title">Completed Appointments</h5>
+                    <h2 class="card-value">{{ completed_appointments_count }}</h2>
+                    <p class="card-text">Total completed appointments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Appointment Requests -->
+    <div class="dashboard-section mb-4">
+        <div class="section-header d-flex justify-content-between align-items-center mb-3">
+            <h3>Pending Appointment Requests</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Date & Time</th>
+                        <th>Reason</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in pending_appointments %}
+                    <tr>
+                        <td>{{ appointment.patient.get_full_name }}</td>
+                        <td>{{ appointment.date|format_date }} at {{ appointment.time_slot }}</td>
+                        <td>{{ appointment.reason|default:"Not specified" }}</td>
+                        <td>
+                            <form method="post" action="{% url 'appointments:handle_appointment' appointment.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="accept">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'appointments:handle_appointment' appointment.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No pending appointment requests</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Today's Appointments -->
+    <div class="dashboard-section mb-4">
+        <div class="section-header d-flex justify-content-between align-items-center mb-3">
+            <h3>Today's Appointments</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in today_appointments %}
+                    <tr>
+                        <td>{{ appointment.patient.get_full_name }}</td>
+                        <td>{{ appointment.time_slot }}</td>
+                        <td>
+                            <span class="badge bg-{{ appointment.status|status_color }}">
+                                {{ appointment.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if appointment.status == 'scheduled' %}
+                            <form method="post" action="{% url 'appointments:complete_appointment' appointment.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-check-circle"></i> Mark as Completed
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No appointments scheduled for today</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Completed Appointments History -->
+    <div class="dashboard-section">
+        <div class="section-header d-flex justify-content-between align-items-center mb-3">
+            <h3>Completed Appointments History</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Appointment Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in completed_appointments %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if appointment.patient.profile_picture %}
+                                <img src="{{ appointment.patient.profile_picture.url }}" alt="Patient Profile" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                <img src="{% static 'images/default-avatar.png' %}" alt="Patient Profile" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% endif %}
+                                <span>{{ appointment.patient.get_full_name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ appointment.date|format_date }}</td>
+                        <td>{{ appointment.time_slot }}</td>
+                        <td>{{ appointment.reason|default:"General Consultation" }}</td>
+                        <td>
+                            {% if appointment.status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                            {% elif appointment.status == 'accepted' %}
+                            <span class="badge bg-primary">Accepted</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'appointments:appointment_detail' appointment.id %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-user-md me-1"></i> Patient Details
+                                </a>
+                                {% if appointment.status == 'accepted' %}
+                                <form method="post" action="{% url 'appointments:complete_appointment' appointment.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check-circle me-1"></i> Mark Completed
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No completed appointments yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Patient Messages -->
+    <div class="dashboard-section">
+        <div class="section-header d-flex justify-content-between align-items-center mb-3">
+            <h3>Patient Messages</h3>
+        </div>
+        
+        {% if patient_notes %}
+            <div class="patient-notes-list">
+                {% for note in patient_notes %}
+                    <div class="card mb-4 {% if not note.is_read_by_doctor %}border-primary{% endif %}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">From: {{ note.patient.get_full_name }}</h5>
+                                <small class="text-muted">{{ note.created_at|date:"F d, Y" }} at {{ note.created_at|date:"g:i A" }}</small>
+                            </div>
+                            {% if not note.is_read_by_doctor %}
+                                <span class="badge bg-primary">New Message</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="patient-message mb-3">
+                                <h6 class="text-muted mb-2">Patient's Message:</h6>
+                                <div class="message-content p-3 bg-light rounded">
+                                    {{ note.message }}
+                                </div>
+                            </div>
+                            
+                            {% if note.reply %}
+                                <div class="doctor-reply mt-4">
+                                    <h6 class="text-muted mb-2">Your Reply:</h6>
+                                    <div class="reply-content p-3 bg-primary bg-opacity-10 rounded">
+                                        {{ note.reply }}
+                                    </div>
+                                    <div class="text-end mt-2">
+                                        <small class="text-muted">Replied on {{ note.replied_at|date:"F d, Y" }} at {{ note.replied_at|date:"g:i A" }}</small>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <form action="{% url 'appointments:reply_to_patient_note' note.id %}" method="post" class="reply-form mt-3">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="reply{{ note.id }}" class="form-label">Your Reply</label>
+                                        <textarea class="form-control" id="reply{{ note.id }}" name="reply" rows="4" placeholder="Write your reply here..." required></textarea>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane me-1"></i> Send Reply
+                                        </button>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle me-2"></i> No messages from patients at this time.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Availability Management -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Manage Availability</h5>
+        </div>
+        <div class="card-body">
+            <!-- Alert container for messages -->
+            <div id="alertContainer"></div>
+            
+            <!-- Add a note about 30-minute intervals -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Note:</strong> Regardless of the appointment duration you set, the system will display time slots to patients in 30-minute intervals for consistency. Please plan your availability accordingly.
+            </div>
+            
+            <form id="availabilityForm" method="POST" action="{% url 'appointments:update_availability' %}" class="mb-4">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="day_of_week" class="form-label">Day of Week</label>
+                            <select class="form-select" id="day_of_week" name="day_of_week" required>
+                                <option value="">Select a day</option>
+                                <option value="0">Monday</option>
+                                <option value="1">Tuesday</option>
+                                <option value="2">Wednesday</option>
+                                <option value="3">Thursday</option>
+                                <option value="4">Friday</option>
+                                <option value="5">Saturday</option>
+                                <option value="6">Sunday</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required step="1800">
+                            <small class="form-text text-muted">Must be on a 30-minute boundary (e.g., 9:00, 9:30)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" required step="1800">
+                            <small class="form-text text-muted">Must be on a 30-minute boundary (e.g., 9:00, 9:30)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="appointment_duration" class="form-label">Appointment Duration (minutes)</label>
+                            <select class="form-select" id="appointment_duration" name="appointment_duration" required>
+                                <option value="30">30 minutes</option>
+                                <option value="60">60 minutes (1 hour)</option>
+                                <option value="90">90 minutes (1.5 hours)</option>
+                                <option value="120">120 minutes (2 hours)</option>
+                            </select>
+                            <small class="form-text text-muted">Durations are in multiples of 30 minutes</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="is_active">Status</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">Active</label>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary" id="saveAvailabilityBtn">
+                        <i class="fas fa-save"></i> Save Availability
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="resetFormBtn">
+                        <i class="fas fa-undo"></i> Reset Form
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-4">
+                <h5>Current Availability Schedule</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="availabilityTableBody">
+                            {% for availability in working_hours %}
+                            <tr>
+                                <td>{{ availability.get_day_of_week_display }}</td>
+                                <td>{{ availability.start_time|time:"H:i" }}</td>
+                                <td>{{ availability.end_time|time:"H:i" }}</td>
+                                <td>{{ availability.appointment_duration }} minutes</td>
+                                <td>
+                                    {% if availability.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form class="delete-form" method="POST" action="{% url 'appointments:delete_working_hour' working_hour_id=availability.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="button" class="btn btn-sm btn-danger delete-slot" data-id="{{ availability.id }}">
+                                            <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr id="noAvailabilityRow">
+                                <td colspan="6" class="text-center">No availability schedule set</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notes Modal -->
+{% for appointment in completed_appointments %}
+<div class="modal fade" id="notesModal{{ appointment.id }}" tabindex="-1" aria-labelledby="notesModalLabel{{ appointment.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notesModalLabel{{ appointment.id }}">Appointment Notes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Patient:</strong> {{ appointment.patient.get_full_name }}</p>
+                <p><strong>Date:</strong> {{ appointment.date|format_date }}</p>
+                <p><strong>Time:</strong> {{ appointment.time_slot }}</p>
+                <p><strong>Notes:</strong></p>
+                <div class="appointment-notes">
+                    {{ appointment.notes|default:"No notes available" }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Add styles for the patient notes section -->
+<style>
+    /* Patient Notes Styling */
+    .patient-notes-list .card {
+        transition: transform 0.2s;
+    }
+    
+    .patient-notes-list .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .patient-message .message-content {
+        border-left: 4px solid #6c757d;
+    }
+    
+    .doctor-reply .reply-content {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .reply-form {
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+    }
+</style>
+
+<!-- Reply Modals -->
+{% for note in patient_notes %}
+    <div class="modal fade" id="replyModal{{ note.id }}" tabindex="-1" aria-labelledby="replyModalLabel{{ note.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="replyModalLabel{{ note.id }}">Reply to {{ note.patient.get_full_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'appointments:reply_to_patient_note' note.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Patient's Message:</label>
+                            <div class="patient-message p-3 bg-light rounded">
+                                {{ note.message }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reply{{ note.id }}" class="form-label">Your Reply:</label>
+                            <textarea class="form-control" id="reply{{ note.id }}" name="reply" rows="5" required>{{ note.reply|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Send Reply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/availability.js' %}"></script>
+<script>
+    // Add client-side validation for 30-minute intervals
+    document.addEventListener('DOMContentLoaded', function() {
+        const startTimeInput = document.getElementById('start_time');
+        const endTimeInput = document.getElementById('end_time');
+        const form = document.getElementById('availabilityForm');
+        
+        // Function to validate time is on a 30-minute boundary (00 or 30 minutes)
+        function validateTimeInterval(timeStr) {
+            if (!timeStr) return false;
+            
+            const [hours, minutes] = timeStr.split(':').map(num => parseInt(num, 10));
+            return minutes % 30 === 0;
+        }
+        
+        // Validate times when inputs change
+        startTimeInput.addEventListener('change', function() {
+            if (!validateTimeInterval(this.value)) {
+                alert('Start time must be on a 30-minute boundary (e.g., 9:00, 9:30)');
+                this.value = '';
+            }
+        });
+        
+        endTimeInput.addEventListener('change', function() {
+            if (!validateTimeInterval(this.value)) {
+                alert('End time must be on a 30-minute boundary (e.g., 9:00, 9:30)');
+                this.value = '';
+            }
+        });
+        
+        // Final validation on form submission
+        form.addEventListener('submit', function(e) {
+            if (!validateTimeInterval(startTimeInput.value)) {
+                e.preventDefault();
+                alert('Start time must be on a 30-minute boundary (e.g., 9:00, 9:30)');
+                startTimeInput.focus();
+                return false;
+            }
+            
+            if (!validateTimeInterval(endTimeInput.value)) {
+                e.preventDefault();
+                alert('End time must be on a 30-minute boundary (e.g., 9:00, 9:30)');
+                endTimeInput.focus();
+                return false;
+            }
+            
+            return true;
+        });
+    });
+</script>
+{% endblock %}

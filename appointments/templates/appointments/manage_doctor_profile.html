@@ -1,0 +1,134 @@
+{% extends 'appointments/base.html' %}
+
+{% block title %}Manage Doctor Profile - Prescripto{% endblock %}
+
+{% block extra_css %}
+<style>
+.doctor-profile-section {
+    padding: 2rem 0;
+}
+
+.profile-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    border-radius: 6px;
+    padding: 0.75rem;
+    border: 1px solid #dee2e6;
+    font-size: 0.95rem;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    border-color: #010001;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #020103, #000000);
+    border: none;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #000000, #020103);
+}
+
+.alert {
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.image-preview {
+    max-width: 200px;
+    margin: 1rem 0;
+}
+
+.image-upload {
+    margin-top: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doctor-profile-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Manage Doctor Profile</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                {% endfor %}
+                            {% endif %}
+                            
+                            <div class="form-group">
+                                <label for="{{ form.user.id_for_label }}">Doctor</label>
+                                {{ form.user }}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.specialization.id_for_label }}">Specialization</label>
+                                {{ form.specialization }}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.experience.id_for_label }}">Years of Experience</label>
+                                {{ form.experience }}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.education.id_for_label }}">Education</label>
+                                {{ form.education }}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.bio.id_for_label }}">Biography</label>
+                                {{ form.bio }}
+                            </div>
+
+                            <div class="form-group image-upload">
+                                <label for="{{ form.profile_picture.id_for_label }}">Profile Picture</label>
+                                {{ form.profile_picture }}
+                                {% if doctor.profile_picture %}
+                                    <img src="{{ doctor.profile_picture.url }}" alt="Profile Picture" class="image-preview">
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.consultation_fee.id_for_label }}">Consultation Fee</label>
+                                {{ form.consultation_fee }}
+                            </div>
+
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="{{ form.is_available.id_for_label }}" name="{{ form.is_available.name }}" {% if doctor.is_available %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ form.is_available.id_for_label }}">Currently Available</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

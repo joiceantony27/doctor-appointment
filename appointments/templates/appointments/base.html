@@ -1,0 +1,300 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Prescripto{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --primary-dark: #1565C0;
+            --text-dark: #1F2937;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: -1;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand img {
+            height: 40px;
+            width: auto;
+        }
+
+        .nav-link {
+            color: var(--text-dark) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            border-radius: 12px;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .main-content-wrapper {
+            position: relative;
+            margin-top: 76px; /* Navbar height */
+            background: #ffffff; /* Changed from rgba(255, 255, 255, 0.95) to solid white */
+            min-height: calc(100vh - 76px - 300px); /* Ensure enough space for footer */
+            z-index: 1;
+            padding-bottom: 150px; /* Large padding to ensure content doesn't overlap with footer */
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        footer {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            background-color: #f8f9fa;
+            margin-top: 120px; /* Significant margin to push footer down */
+            border-top: 1px solid #e9ecef;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.05); /* Add subtle shadow for separation */
+        }
+
+        @media (max-width: 768px) {
+            .main-content-wrapper {
+                min-height: calc(100vh - 76px - 350px); /* More space for footer on mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Removing the background image -->
+    
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'appointments:home' %}" aria-label="Prescripto Home">
+                <img src="{% static 'img/prescripto-logo.svg' %}" alt="Prescripto" class="navbar-logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'appointments:home' %}" aria-label="Home">HOME</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'appointments:doctor_list' %}" aria-label="All Doctors">ALL DOCTORS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'appointments:about' %}" aria-label="About">ABOUT</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'appointments:contact' %}" aria-label="Contact">CONTACT</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    {% if user.is_authenticated %}
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile" class="rounded-circle" width="32" height="32">
+                                {% else %}
+                                    <i class="fas fa-user-circle fa-lg"></i>
+                                {% endif %}
+                                {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                {% if user.is_staff or user.is_superuser or user.user_type == 'admin' %}
+                                    <li><a class="dropdown-item" href="{% url 'appointments:admin_dashboard' %}">Admin Dashboard</a></li>
+                                {% elif user.is_doctor %}
+                                    <li><a class="dropdown-item" href="{% url 'appointments:doctor_dashboard' %}">Doctor Dashboard</a></li>
+                                {% else %}
+                                    <li><a class="dropdown-item" href="{% url 'appointments:patient_dashboard' %}">Patient Dashboard</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'appointments:logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'appointments:login' %}" class="btn btn-outline-primary me-2">Login</a>
+                        <a href="{% url 'appointments:register' %}" class="btn btn-primary">Create account</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-5 pt-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+        <!-- Back Button -->
+        <div class="container mt-3 mb-3">
+            <button onclick="window.history.back()" class="btn btn-secondary p-2 rounded">
+                <i class="fas fa-arrow-left me-1"></i> Back
+            </button>
+        </div>
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <a class="navbar-brand d-flex align-items-center mb-3" href="{% url 'appointments:home' %}">
+                        <img src="{% static 'img/prescripto-logo.svg' %}" alt="Prescripto" style="height: 30px;">
+                        Prescripto
+                    </a>
+                    <p class="text-muted">Your trusted healthcare partner. Book appointments with the best doctors hassle-free.</p>
+                </div>
+                <div class="col-lg-2">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'appointments:home' %}" class="text-decoration-none text-muted">Home</a></li>
+                        <li><a href="{% url 'appointments:doctor_list' %}" class="text-decoration-none text-muted">All Doctors</a></li>
+                        <li><a href="{% url 'appointments:about' %}" class="text-decoration-none text-muted">About</a></li>
+                        <li><a href="{% url 'appointments:contact' %}" class="text-decoration-none text-muted">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h5 class="mb-3">Contact Info</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-envelope text-primary me-2"></i>
+                            support@prescripto.com
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-phone text-primary me-2"></i>
+                            +1 (234) 567-8900
+                        </li>
+                        <li>
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                            123 Healthcare Ave, Medical District<br>New York, NY 10001
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h5 class="mb-3">Follow Us</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-muted"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-linkedin fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center text-muted">
+                <small>&copy; {% now "Y" %} Prescripto. All rights reserved.</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

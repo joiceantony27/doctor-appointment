@@ -1,0 +1,410 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Visitor Information - Prescripto{% endblock %}
+
+{% block extra_css %}
+<style>
+    .visitor-banner {
+        position: relative;
+        min-height: 300px;
+        background: url("https://img.freepik.com/free-photo/team-doctors-standing-hospital-corridor_107420-84816.jpg") no-repeat center center;
+        background-size: cover;
+        display: flex;
+        align-items: flex-end;
+    }
+    
+    .visitor-banner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.6));
+    }
+    
+    .banner-content {
+        position: relative;
+        z-index: 2;
+        background: rgba(240, 248, 255, 0.9);
+        margin: 30px;
+        padding: 30px;
+        border-radius: 10px;
+        width: 100%;
+    }
+    
+    .visitor-heading {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0d2036;
+    }
+    
+    .breadcrumb {
+        background: transparent;
+    }
+    
+    .contact-info {
+        background-color: #0d6efd;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .section-title {
+        position: relative;
+        padding-bottom: 15px;
+        margin-bottom: 30px;
+        font-weight: 700;
+    }
+    
+    .section-title:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 3px;
+        background: #0d6efd;
+    }
+    
+    .guideline-card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .guideline-card:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transform: translateY(-5px);
+    }
+    
+    .guideline-icon {
+        font-size: 2.5rem;
+        color: #0d6efd;
+        margin-bottom: 20px;
+    }
+    
+    .action-btn {
+        position: fixed;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(108, 99, 255, 0.2);
+        border-radius: 30px;
+        padding: 10px;
+        z-index: 100;
+    }
+    
+    .action-btn a {
+        display: block;
+        width: 50px;
+        height: 50px;
+        line-height: 50px;
+        text-align: center;
+        border-radius: 50%;
+        background: white;
+        color: #0d6efd;
+        margin: 10px 0;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn a:hover {
+        background: #0d6efd;
+        color: white;
+    }
+    
+    .contact-section {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 40px;
+    }
+    
+    .contact-info-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .contact-info-icon {
+        background: #0d6efd;
+        color: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        flex-shrink: 0;
+    }
+    
+    .updated-tag {
+        background-color: #e6f7ff;
+        color: #0d6efd;
+        font-size: 0.9rem;
+        padding: 5px 15px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Banner Section -->
+<div class="visitor-banner">
+    <div class="visitor-banner-overlay"></div>
+    <div class="container">
+        <div class="banner-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="visitor-heading">Visitor - Information</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'appointments:home' %}">Home</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Visitor Information</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="contact-info">
+                        <i class="fas fa-phone-alt me-2"></i>
+                        <span>CALL: +011 3253 4567</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="action-btn">
+    <a href="javascript:window.print()"><i class="fas fa-print"></i></a>
+    <a href="mailto:?subject=Visitor Information&body=Check out the visitor information page at Prescripto"><i class="fas fa-envelope"></i></a>
+    <a href="javascript:void(0)" onclick="shareOnSocial()"><i class="fas fa-share-alt"></i></a>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <span class="updated-tag"><i class="fas fa-calendar-check me-2"></i> UPDATED: SEPTEMBER 26, 2023</span>
+            <h2 class="section-title">Visiting A Patient</h2>
+            <p class="lead">Meca welcomes families, Essential Care Partners (ECPs)/support people and visitors to our hospital and community locations. We want everyone to be safe and comfortable during their visit.</p>
+            
+            <p>As the pandemic improves and Ontario eases some COVID-19 policies, Meca has adjusted our guidelines for visitors and ECPs. As the COVID-19 pandemic changes in the future, Meca may need to make further changes to protect our patients, health care teams and the public.</p>
+            
+            <div class="text-center my-5">
+                <img src="https://img.freepik.com/free-photo/surgeons-performing-operation-operating-theatre_1170-2217.jpg" alt="Medical Team" class="img-fluid rounded shadow-sm" style="max-height: 350px;">
+            </div>
+            
+            <h3 class="section-title">GUIDELINES</h3>
+            <h4 class="mb-4">Guidelines At A Glance</h4>
+            <p>An annual wellness exam is one of the best ways for early detection of serious medical problems, and to maintain your health. Visiting our clinic each year allows our physicians to discuss potential illnesses and health concerns before they become serious, like high blood pressure, diabetes or high cholesterol. while offering ways to improve your nutrition and lifestyle. Wellness exams can also provide the assurance that you are healthy and doing well.</p>
+            
+            <p>Our annual wellness checks provide preventive services, counseling, education and disease screening, based on your gender or age.</p>
+            
+            <div class="row mt-5">
+                <div class="col-md-6 mb-4">
+                    <div class="guideline-card card p-4">
+                        <div class="card-body">
+                            <div class="guideline-icon">
+                                <i class="fas fa-door-open"></i>
+                            </div>
+                            <h5 class="card-title">Public Entrances</h5>
+                            <p class="card-text">Everyone can now enter and exit the General site through Entrance 2 West and Entrance 1 South between 6 a.m. and 9 p.m. and through Entrance 1 South after hours by pressing the intercom button beside the public entrance door to gain access.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="guideline-card card p-4">
+                        <div class="card-body">
+                            <div class="guideline-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h5 class="card-title">Expanded Visitor Access</h5>
+                            <p class="card-text">Patients can have visitors 24 hours a day according to their preference, with two visitors at the bed side at a time to maintain physical distancing.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="guideline-card card p-4">
+                        <div class="card-body">
+                            <div class="guideline-icon">
+                                <i class="fas fa-child"></i>
+                            </div>
+                            <h5 class="card-title">Children Visitors</h5>
+                            <p class="card-text">To support families, children under 14 are excluded from this limit. Children must be accompanied by an adult who is not a patient and wear a mask provided by Meca.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="guideline-card card p-4">
+                        <div class="card-body">
+                            <div class="guideline-icon">
+                                <i class="fas fa-hospital-user"></i>
+                            </div>
+                            <h5 class="card-title">Outpatient Visits</h5>
+                            <p class="card-text">Outpatients can have up to two visitors accompany them for an appointment. To ensure everyone's safety and comfort, the patient's care team may make exceptions to the above.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info p-4 mt-4">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5>Important Notes</h5>
+                        <ul class="mb-0">
+                            <li>Pre-booking and signing into the unit upon arrival is no longer required.</li>
+                            <li>Virtual visits are still available over MS Teams or Facetime. To arrange a virtual visit, connect directly with the patient's nursing unit.</li>
+                            <li>Visits with patients admitted to a unit with a declared outbreak may be considered. Speak with your patient's care team.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-title mt-5">COVID-19 Vaccination</h3>
+            <ul class="list-group list-group-flush mb-5">
+                <li class="list-group-item border-0 ps-0"><i class="fas fa-check-circle text-success me-2"></i> Visitors and ECPs are strongly encouraged to be vaccinated against COVID-19 for protection against infection and serious illness.</li>
+                <li class="list-group-item border-0 ps-0"><i class="fas fa-check-circle text-success me-2"></i> If you haven't received your vaccination or booster shot yet, please do so as soon as you can. See vaccination clinics near you.</li>
+                <li class="list-group-item border-0 ps-0"><i class="fas fa-check-circle text-success me-2"></i> Consistent with Ontario's current vaccination requirements for public spaces and the health system, proof of full COVID-19 vaccination is no longer required to enter Meca sites.</li>
+            </ul>
+            
+            <h3 class="section-title">On the Day of Your Visit</h3>
+            <div class="accordion" id="visitAccordion">
+                <div class="accordion-item">
+                    <h4 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            Before arriving at the hospital
+                        </button>
+                    </h4>
+                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#visitAccordion">
+                        <div class="accordion-body">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-angle-right text-primary me-2"></i> On the day you wish to visit the hospital, self-screen for COVID-19 symptoms.</li>
+                                <li><i class="fas fa-angle-right text-primary me-2"></i> Please do not visit the hospital if you are feeling unwell, even if you have mild symptoms, or are COVID-19 positive, awaiting results of a COVID-19 test, in close contact with a COVID-19 positive person, or in quarantine.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h4 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Entering the hospital
+                        </button>
+                    </h4>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#visitAccordion">
+                        <div class="accordion-body">
+                            <p>No specific instructions provided. Please follow the posted signage at entrances and comply with all hospital staff directions upon arrival.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h4 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            During your visit
+                        </button>
+                    </h4>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#visitAccordion">
+                        <div class="accordion-body">
+                            <p>No specific instructions provided. Please be respectful of other patients, visitors, and staff by maintaining appropriate noise levels and following all hospital guidelines.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h4 class="accordion-header" id="headingFour">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            When your visit is over
+                        </button>
+                    </h4>
+                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#visitAccordion">
+                        <div class="accordion-body">
+                            <p>No specific instructions provided. Please exit through the same entrance you used to enter, unless directed otherwise.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="contact-section mb-4">
+                <h3 class="mb-4">Contact Here For Any Kind Of Education Inquiry</h3>
+                <div class="contact-info-item">
+                    <div class="contact-info-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div>
+                        <p class="mb-0 fw-bold">Phone</p>
+                        <p class="mb-0">+011 3253 4567</p>
+                    </div>
+                </div>
+                <div class="contact-info-item">
+                    <div class="contact-info-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div>
+                        <p class="mb-0 fw-bold">Email</p>
+                        <p class="mb-0">walterwhite@gmail.com</p>
+                    </div>
+                </div>
+                <div class="contact-info-item">
+                    <div class="contact-info-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div>
+                        <p class="mb-0 fw-bold">Location</p>
+                        <p class="mb-0">1485 Bayshore Blvd. Ste 154, San Francisco, CA 95124</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Need Assistance?</h5>
+                    <p class="card-text">If you have any questions or need help navigating our facilities, our staff is here to help.</p>
+                    <a href="{% url 'appointments:contact' %}" class="btn btn-primary">Contact Us</a>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <img src="{% static 'img/prescripto-logo.svg' %}" alt="Prescripto" class="img-fluid mb-3" style="max-width: 150px;">
+                    <p class="text-muted mb-3">Locations:</p>
+                    <p>485 Bayshore Blvd. Ste 154, San Francisco, CA 95124</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function shareOnSocial() {
+    // Create a simple share dialog
+    if (navigator.share) {
+        navigator.share({
+            title: 'Visitor Information - Prescripto',
+            text: 'Check out the visitor information page at Prescripto',
+            url: window.location.href,
+        })
+        .catch(console.error);
+    } else {
+        alert('Share feature not supported by your browser. Please copy the URL manually.');
+    }
+}
+</script>
+{% endblock %} 

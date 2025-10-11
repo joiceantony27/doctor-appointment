@@ -1,0 +1,1218 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - MedApp{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'appointments/css/admin_dashboard.css' %}">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css">
+<style>
+    /* Base layout styles */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding-bottom: 300px; /* Increased from 200px to 300px */
+    }
+
+    .dashboard-wrapper {
+        display: flex;
+        width: 100%;
+        flex: 1 0 auto; /* This makes it take available space and not shrink */
+        margin-bottom: 150px; /* Increased from 100px to 150px */
+    }
+
+    #sidebar {
+        min-width: 250px;
+        max-width: 250px;
+        background: #343a40;
+        color: #fff;
+        transition: all 0.3s;
+        position: sticky;
+        top: 76px; /* Navbar height */
+        height: calc(100vh - 76px);
+        overflow-y: auto;
+    }
+
+    #content {
+        flex: 1;
+        padding: 20px;
+        background: #f8f9fa;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding-bottom: 120px; /* Increased from 80px to 120px */
+    }
+
+    /* Override footer styles specifically for admin dashboard */
+    body.admin-dashboard footer {
+        margin-top: 300px !important; /* Increased from 200px to 300px */
+        position: relative !important;
+    }
+
+    /* Card styles */
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        background: #fff;
+    }
+
+    .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid #eee;
+        padding: 15px 20px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .dashboard-wrapper {
+            flex-direction: column;
+            margin-bottom: 200px; /* Increased from 150px to 200px */
+        }
+
+        #sidebar {
+            min-width: 100%;
+            max-width: 100%;
+            position: relative;
+            top: 0;
+            height: auto;
+        }
+        
+        .wrapper {
+            padding-bottom: 350px; /* Increased from 250px to 350px */
+        }
+    }
+
+    /* Space at the bottom of all sections */
+    .dashboard-section {
+        margin-bottom: 200px; /* Increased from 150px to 200px */
+    }
+
+    /* Rest of your existing styles... */
+    .stat-card {
+        border-left: 4px solid;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .border-left-primary { border-left-color: #4e73df !important; }
+    .border-left-success { border-left-color: #1cc88a !important; }
+    .border-left-info { border-left-color: #36b9cc !important; }
+    .border-left-warning { border-left-color: #f6c23e !important; }
+    .border-left-danger { border-left-color: #e74a3b !important; }
+    .border-left-secondary { border-left-color: #858796 !important; }
+
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+    }
+
+    .modal-lg {
+        max-width: 800px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .action-buttons .btn {
+        margin: 0 2px;
+    }
+
+    .filter-section {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .notification-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .notification-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.2s;
+    }
+    
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .notification-unread {
+        background-color: #e8f4fd;
+    }
+    
+    .calendar-container {
+        height: 500px;
+    }
+    
+    .doctor-card {
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+    
+    .doctor-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .profile-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    
+    .dashboard-tab-content {
+        display: none;
+    }
+    
+    .dashboard-tab-content.active {
+        display: block;
+    }
+    
+    .toggle-password {
+        cursor: pointer;
+    }
+    
+    .progress-thin {
+        height: 5px;
+    }
+    
+    .stats-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    
+    /* Dark mode styles */
+    .dark-mode {
+        background-color: #222;
+        color: #f0f0f0;
+    }
+    
+    .dark-mode .card {
+        background-color: #333;
+        color: #f0f0f0;
+    }
+    
+    .dark-mode .card-header {
+        background-color: #2a2a2a;
+        border-bottom: 1px solid #444;
+    }
+    
+    .dark-mode .bg-light {
+        background-color: #333 !important;
+    }
+    
+    /* Gradient backgrounds */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+    }
+    
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+        color: white;
+    }
+    
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+        color: white;
+    }
+    
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+        color: white;
+    }
+
+    /* Section visibility for dashboard */
+    .dashboard-section {
+        display: none;
+    }
+    
+    .dashboard-section.active {
+        display: block;
+    }
+
+    /* Main content area */
+    main {
+        flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Patient details modal styling */
+    .patient-details-modal .swal2-html-container {
+        overflow-x: hidden;
+    }
+    
+    .patient-details-modal .patient-info {
+        margin-bottom: 20px;
+    }
+    
+    .patient-details-modal .patient-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 15px;
+    }
+    
+    .patient-details-modal .patient-name {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .patient-details-modal .info-label {
+        font-weight: bold;
+        color: #4e73df;
+    }
+    
+    .patient-details-modal .info-section {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    
+    .patient-details-modal .appointment-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+<!-- CSRF Token for AJAX requests -->
+<meta name="csrf-token" content="{{ csrf_token }}">
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+  <main>
+    <div class="dashboard-wrapper">
+      <!-- Sidebar -->
+      <nav id="sidebar" class="active">
+        <div class="sidebar-header">
+            <h3>MedApp Admin</h3>
+        </div>
+
+        <ul class="list-unstyled components">
+            <li class="active">
+                <a href="#dashboard-section" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="#users-section" data-section="users">
+                    <i class="fas fa-users"></i>
+                    User Management
+                </a>
+            </li>
+            <li>
+                <a href="#doctors-section" data-section="doctors">
+                    <i class="fas fa-user-md"></i>
+                    Doctor Verification
+                </a>
+            </li>
+            <li>
+                <a href="#appointments-section" data-section="appointments">
+                    <i class="fas fa-calendar-check"></i>
+                    Appointments
+                </a>
+            </li>
+            <li>
+                <a href="#calendar-section" data-section="calendar">
+                    <i class="fas fa-calendar-alt"></i>
+                    Calendar View
+                </a>
+            </li>
+            <li>
+                <a href="#working-hours-section" data-section="working-hours">
+                    <i class="fas fa-clock"></i>
+                    Working Hours
+                </a>
+            </li>
+            <li>
+                <a href="#payments-section" data-section="payments">
+                    <i class="fas fa-credit-card"></i>
+                    Payments
+                </a>
+            </li>
+            <li>
+                <a href="#reviews-section" data-section="reviews">
+                    <i class="fas fa-star"></i>
+                    Reviews
+                </a>
+            </li>
+            <li>
+                <a href="#blocked-slots-section" data-section="blocked-slots">
+                    <i class="fas fa-ban"></i>
+                    Blocked Slots
+                </a>
+            </li>
+            <li>
+                <a href="#schedules-section" data-section="schedules">
+                    <i class="fas fa-calendar-alt"></i>
+                    Schedules
+                </a>
+            </li>
+            <li>
+                <a href="#specializations-section" data-section="specializations">
+                    <i class="fas fa-stethoscope"></i>
+                    Specializations
+                </a>
+            </li>
+            <li>
+                <a href="#notifications-section" data-section="notifications">
+                    <i class="fas fa-bell"></i>
+                    Notifications
+                </a>
+            </li>
+            <li>
+                <a href="#reports-section" data-section="reports">
+                    <i class="fas fa-chart-bar"></i>
+                    Reports
+                </a>
+            </li>
+            <li>
+                <a href="#settings-section" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'appointments:edit_admin_profile' %}">
+                    <i class="fas fa-key"></i>
+                    Change Admin Password
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'appointments:logout' %}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
+            </li>
+        </ul>
+        
+        <div class="px-4 pb-4">
+            <div class="form-check form-switch mt-3">
+                <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+            </div>
+        </div>
+      </nav>
+
+      <!-- Page Content -->
+      <div id="content">
+        <!-- Top Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+            <div class="container-fluid">
+                <button type="button" id="sidebarCollapse" class="btn btn-info">
+                    <i class="fas fa-align-left"></i>
+                </button>
+                
+                <div class="d-flex flex-grow-1 mx-3">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search" aria-label="Search" id="globalSearch">
+                        <button class="btn btn-outline-primary" type="button" id="globalSearchBtn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center">
+                    <div class="dropdown me-3">
+                        <button class="btn position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            {% if unread_notifications_count %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end notification-list" aria-labelledby="notificationDropdown" style="width: 300px;">
+                            <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                <h6 class="m-0">Notifications</h6>
+                                <a href="#" class="text-primary small">Mark all as read</a>
+                            </div>
+                            {% for notification in recent_notifications %}
+                            <a class="dropdown-item notification-item {% if not notification.is_read %}notification-unread{% endif %}" href="#">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle {% if notification.is_read %}text-secondary{% else %}text-primary{% endif %}"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <p class="mb-0 fw-bold">{{ notification.title }}</p>
+                                        <p class="mb-0 small text-truncate">{{ notification.message }}</p>
+                                        <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                                    </div>
+                                </div>
+                            </a>
+                            {% empty %}
+                            <span class="dropdown-item">No new notifications</span>
+                            {% endfor %}
+                            <div class="text-center p-2 border-top">
+                                <a href="#notifications-section" class="text-primary" data-section="notifications">View all notifications</a>
+                        </div>
+                    </div>
+                    </div>
+                    
+                    <div class="dropdown me-3">
+                        <button class="btn position-relative" type="button" id="helpDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-question-circle"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="helpDropdown">
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#helpModal">
+                                <i class="fas fa-info-circle me-2"></i> Help Guide
+                            </a>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#supportModal">
+                                <i class="fas fa-headset me-2"></i> Contact Support
+                            </a>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#shortcutsModal">
+                                <i class="fas fa-keyboard me-2"></i> Keyboard Shortcuts
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="dropdown">
+                        <button class="btn" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            {% if request.user.profile_picture %}
+                                <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-circle" width="32" height="32">
+                            {% else %}
+                                <i class="fas fa-user-circle fa-lg"></i>
+                            {% endif %}
+                            <span class="ms-2 d-none d-md-inline">{{ request.user.get_full_name|default:request.user.username }}</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="{% url 'appointments:edit_admin_profile' %}">
+                                <i class="fas fa-user-edit me-2"></i> Profile
+                            </a>
+                            <a class="dropdown-item" href="#settings-section" data-section="settings">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'appointments:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Added Prominent Logout Button -->
+                    <a href="{% url 'appointments:logout' %}" class="btn btn-danger ms-3">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard Content -->
+        <div class="container-fluid">
+            <!-- Add New Doctor Button -->
+            <div class="d-flex justify-content-end mb-4">
+                <a href="{% url 'appointments:add_doctor' %}" class="btn btn-primary">
+                    <i class="fas fa-user-md me-2"></i>Add New Doctor
+                </a>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-2 col-md-4 col-sm-6 mb-2">
+                    <div class="card stat-card border-left-primary">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Users</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-2 col-md-4 col-sm-6 mb-2">
+                    <div class="card stat-card border-left-success">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Active Doctors</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_doctors }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user-md fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-2 col-md-4 col-sm-6 mb-2">
+                    <div class="card stat-card border-left-info">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Today's Appointments</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ today_appointments }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-2 col-md-4 col-sm-6 mb-2">
+                    <div class="card stat-card border-left-warning">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Pending Payments</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${{ pending_payments }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-2 col-md-4 col-sm-6 mb-2">
+                    <div class="card stat-card border-left-danger">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        Total Revenue</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_revenue|default:"0" }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-2 col-md-4 col-sm-6 mb-2">
+                    <div class="card stat-card border-left-secondary">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                        Average Rating</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ avg_rating|default:"0"|floatformat:1 }}/5</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-star fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Registered Patients</h6>
+                    <div class="d-flex gap-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="quickUserSearch" placeholder="Search patients...">
+                            <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <a href="{% url 'appointments:admin_users' %}" class="btn btn-primary">
+                            <i class="fas fa-users me-1"></i> View All Patients
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Join Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users|slice:":5" %}
+                                {% if user.user_type == 'patient' %}
+                                <tr>
+                                    <td>{{ user.get_full_name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ user.is_active|yesno:"Active,Inactive" }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No patients registered yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Sections -->
+            <div id="dashboard-content" class="dashboard-section active">
+                <!-- Dashboard Tabs -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="overview-tab" data-bs-toggle="tab" href="#overview" role="tab">Overview</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="calendar-tab" data-bs-toggle="tab" href="#calendar" role="tab">Calendar</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="activity-tab" data-bs-toggle="tab" href="#activity" role="tab">Activity</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="doctors-tab" data-bs-toggle="tab" href="#top-doctors" role="tab">Top Doctors</a>
+                            </li>
+                            <li class="nav-item ms-auto">
+                                <div class="input-group date">
+                                    <input type="date" class="form-control form-control-sm" id="dashboardDateFilter" value="{{ today|date:'Y-m-d' }}">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" id="refreshDashboard">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <!-- Overview Tab -->
+                            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                                <!-- Removed the Charts Row with Appointment Overview and Revenue Overview -->
+                <div class="row">
+                                    <div class="col-12">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                                <h6 class="m-0 font-weight-bold text-primary">System Overview</h6>
+                            </div>
+                            <div class="card-body">
+                                                <div class="row mb-4">
+                                                    <div class="col-md-6">
+                                                        <div class="card border-left-primary">
+                                                            <div class="card-body">
+                                                                <h5 class="card-title">Welcome to MedApp Admin</h5>
+                                                                <p class="card-text">This dashboard provides administration tools for managing your medical appointment system.</p>
+                            </div>
+                        </div>
+                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card border-left-info">
+                                            <div class="card-body">
+                                                                <h5 class="card-title">Quick Stats</h5>
+                                                                <p class="card-text">
+                                                                    <strong>Total Users:</strong> {{ total_users }}<br>
+                                                                    <strong>Active Doctors:</strong> {{ active_doctors }}<br>
+                                                                    <strong>Today's Appointments:</strong> {{ today_appointments }}
+                                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                            </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Removed the New Row with Additional Charts (Specialization Distribution and User Registration Trend) -->
+                            </div>
+                            
+                            <!-- Calendar Tab - Removed the Appointment Calendar content -->
+                            <div class="tab-pane fade" id="calendar" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="card shadow mb-4">
+                                            <div class="card-header py-3">
+                                                <h6 class="m-0 font-weight-bold text-primary"></h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="text-center"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Activity Tab -->
+                            <div class="tab-pane fade" id="activity" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                                                <div class="btn-group">
+                                <button class="btn btn-sm btn-primary" onclick="exportActivityData()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                                                    <button class="btn btn-sm btn-outline-secondary" id="refreshActivity">
+                                                        <i class="fas fa-sync-alt"></i>
+                                </button>
+                                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="activityTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Action</th>
+                                                <th>User</th>
+                                                <th>Description</th>
+                                                <th>Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for activity in recent_activities %}
+                                            <tr>
+                                                <td>{{ activity.action }}</td>
+                                                <td>{{ activity.user }}</td>
+                                                <td>{{ activity.description }}</td>
+                                                <td>{{ activity.created_at }}</td>
+                                                <td class="action-buttons">
+                                                    <button class="btn btn-sm btn-info view-activity-btn" data-activity-id="{{ activity.id }}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                                </div>
+                                            </div>
+                                            <!-- Add View More button for Recent Activity -->
+                                            <div class="card-footer text-center">
+                                                <a href="{% url 'appointments:admin_dashboard' %}#activity" class="btn btn-primary">
+                                                    <i class="fas fa-list me-1"></i> View More Activities
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Top Doctors Tab -->
+                            <div class="tab-pane fade" id="top-doctors" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="card shadow mb-4">
+                                            <div class="card-header py-3">
+                                                <h6 class="m-0 font-weight-bold text-primary">Top Performing Doctors</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    {% for doctor in top_doctors %}
+                                                    <div class="col-xl-4 col-md-6 mb-4">
+                                                        <div class="card doctor-card h-100" data-doctor-id="{{ doctor.id }}">
+                                                            {% if not doctor.user.is_active %}
+                                                            <div class="position-absolute top-0 end-0 p-2">
+                                                                <span class="badge bg-danger">Inactive</span>
+                                                            </div>
+                                                            {% endif %}
+                                                            <div class="card-body">
+                                                                <div class="d-flex align-items-center mb-3">
+                                                                    <div class="flex-shrink-0">
+                                                                        {% if doctor.profile_picture %}
+                                                                        <img src="{{ doctor.profile_picture.url }}" alt="{{ doctor.user.get_full_name }}" class="profile-image">
+                                                                        {% else %}
+                                                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                                                            <i class="fas fa-user-md fa-2x"></i>
+                                                                        </div>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                    <div class="flex-grow-1 ms-3">
+                                                                        <h5 class="font-weight-bold">Dr. {{ doctor.user.get_full_name }}</h5>
+                                                                        <p class="text-muted mb-0">{{ doctor.specialization.name }}</p>
+                                                                        <div class="text-warning">
+                                                                            {% for i in "12345" %}
+                                                                                {% if forloop.counter <= doctor.avg_rating %}
+                                                                                <i class="fas fa-star"></i>
+                                                                                {% elif forloop.counter <= doctor.avg_rating|add:0.5 %}
+                                                                                <i class="fas fa-star-half-alt"></i>
+                                                                                {% else %}
+                                                                                <i class="far fa-star"></i>
+                                                                                {% endif %}
+                                                                            {% endfor %}
+                                                                            <span class="text-muted ms-1">({{ doctor.review_count }})</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row text-center mt-3">
+                                                                    <div class="col-4">
+                                                                        <h6 class="mb-0">{{ doctor.appointment_count }}</h6>
+                                                                        <small class="text-muted">Appointments</small>
+                                                                    </div>
+                                                                    <div class="col-4">
+                                                                        <h6 class="mb-0">${{ doctor.total_revenue }}</h6>
+                                                                        <small class="text-muted">Revenue</small>
+                                                                    </div>
+                                                                    <div class="col-4">
+                                                                        <h6 class="mb-0">{{ doctor.completion_rate }}%</h6>
+                                                                        <small class="text-muted">Completion</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="card-footer bg-transparent border-top-0 text-center">
+                                                                <div class="btn-group">
+                                                                    <a href="{% url 'appointments:doctor_detail' doctor.id %}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                                                                    <button class="btn btn-sm {% if doctor.user.is_active %}btn-outline-warning{% else %}btn-warning{% endif %} deactivate-doctor-btn" data-doctor-id="{{ doctor.id }}">
+                                                                        <i class="fas fa-ban me-1"></i>{% if doctor.user.is_active %}Deactivate{% else %}Deactivated{% endif %}
+                                                                    </button>
+                                                                    <form method="POST" action="{% url 'appointments:delete_doctor' doctor.id %}" class="d-inline delete-doctor-form" onsubmit="return confirm('WARNING: Are you sure you want to permanently delete Dr. {{ doctor.user.get_full_name }}? This action cannot be undone and will delete all associated appointments, reviews, and other data.');">
+                                                                        {% csrf_token %}
+                                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                                            <i class="fas fa-trash me-1"></i>Delete
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% empty %}
+                                                    <div class="col-12 text-center py-5">
+                                                        <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
+                                                        <h5>No doctors data available</h5>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <!-- Add View More button for Top Performing Doctors -->
+                                            <div class="card-footer text-center">
+                                                <a href="{% url 'appointments:admin_doctors' %}" class="btn btn-primary">
+                                                    <i class="fas fa-user-md me-1"></i> View All Doctors
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other sections will be loaded dynamically via AJAX -->
+            <div id="users-content" class="dashboard-section"></div>
+            <div id="doctors-content" class="dashboard-section"></div>
+            <div id="appointments-content" class="dashboard-section"></div>
+            <div id="calendar-content" class="dashboard-section"></div>
+            <div id="working-hours-content" class="dashboard-section"></div>
+            <div id="payments-content" class="dashboard-section"></div>
+            <div id="reviews-content" class="dashboard-section"></div>
+            <div id="blocked-slots-content" class="dashboard-section"></div>
+            <div id="schedules-content" class="dashboard-section"></div>
+            <div id="specializations-content" class="dashboard-section"></div>
+            <div id="notifications-content" class="dashboard-section"></div>
+            <div id="reports-content" class="dashboard-section"></div>
+            <div id="settings-content" class="dashboard-section"></div>
+            
+            <!-- Add a large spacer to ensure content doesn't overlap with footer -->
+            <div style="height: 300px; clear: both; margin-top: 150px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container"></div>
+</main>
+</div>
+
+<!-- Common Modals -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage">An error occurred. Please try again.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-success">Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="successMessage">Operation completed successfully.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalLabel">Admin Dashboard Guide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Help modal content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-primary">View Full Documentation</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Support Modal -->
+<div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Support modal content -->
+        </div>
+    </div>
+</div>
+
+<!-- Keyboard Shortcuts Modal -->
+<div class="modal fade" id="shortcutsModal" tabindex="-1" aria-labelledby="shortcutsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Shortcuts modal content -->
+        </div>
+    </div>
+</div>
+
+<!-- Patient Details Modal -->
+<div class="modal fade" id="patientDetailsModal" tabindex="-1" aria-labelledby="patientDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Patient details modal content -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add admin-dashboard class to body for specific styling
+document.body.classList.add('admin-dashboard');
+
+$(document).ready(function() {
+    // Get CSRF token from meta tag
+    var csrfToken = $('meta[name="csrf-token"]').attr('content');
+    
+    // Set up jQuery AJAX to include CSRF token in all requests
+    $.ajaxSetup({
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    });
+    
+    // Event listener for view activity buttons
+    $(document).on('click', '.view-activity-btn', function() {
+        const activityId = $(this).data('activity-id');
+        viewActivityDetails(activityId);
+    });
+    
+    // Patient Details View Handler
+    $(document).on('click', '.view-patient-btn', function() {
+        const patientId = $(this).data('patient-id');
+        loadPatientDetails(patientId);
+    });
+    
+    // Deactivate Doctor Button Handler
+    $(document).on('click', '.deactivate-doctor-btn', function() {
+        const doctorId = $(this).data('doctor-id');
+        const doctorName = $(this).closest('.doctor-card').find('h5').text();
+        const isAlreadyDeactivated = $(this).hasClass('btn-warning');
+        
+        const action = isAlreadyDeactivated ? 'activate' : 'deactivate';
+        const confirmMessage = isAlreadyDeactivated 
+            ? `Are you sure you want to activate ${doctorName}? This will allow the doctor to log in again.`
+            : `Are you sure you want to deactivate ${doctorName}? This will prevent the doctor from logging in.`;
+        
+        // Show confirmation modal
+        $('#confirmMessage').text(confirmMessage);
+        $('#confirmModal').modal('show');
+        
+        // Set up confirm action
+        $('#confirmAction').off().on('click', function() {
+            // Hide the modal
+            $('#confirmModal').modal('hide');
+            
+            // Send AJAX request to deactivate/activate doctor
+            $.ajax({
+                url: "{% url 'appointments:deactivate_doctor' 0 %}".replace('/0/', `/${doctorId}/`),
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                data: { action: action },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Show success message
+                        $('#successMessage').text(response.message);
+                        $('#successModal').modal('show');
+                        
+                        // Refresh the page after a short delay
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        // Show error message
+                        $('#errorMessage').text(response.message || `An error occurred while ${action}ing the doctor.`);
+                        $('#errorModal').modal('show');
+                    }
+                },
+                error: function(xhr) {
+                    const errorMessage = xhr.responseJSON?.message || `Failed to ${action} doctor. Please try again.`;
+                    $('#errorMessage').text(errorMessage);
+                    $('#errorModal').modal('show');
+                }
+            });
+        });
+    });
+    
+    // Delete Doctor Button Handler
+    $(document).on('click', '.delete-doctor-btn', function() {
+        const doctorId = $(this).data('doctor-id');
+        const doctorName = $(this).closest('.doctor-card').find('h5').text();
+        
+        console.log('Delete button clicked for doctor:', doctorId, doctorName);
+        
+        // Validate doctorId
+        if (!doctorId) {
+            console.error('Doctor ID is missing or invalid');
+            $('#errorMessage').text('Could not determine which doctor to delete. Please try again or contact support.');
+            $('#errorModal').modal('show');
+            return;
+        }
+        
+        // Show confirmation modal with warning
+        $('#confirmMessage').html(`<strong class="text-danger">WARNING:</strong> Are you sure you want to permanently delete ${doctorName}? <br><br>This action cannot be undone and will delete all associated appointments, reviews, and other data.`);
+        $('#confirmModal').modal('show');
+        
+        // Set up confirm action
+        $('#confirmAction').off().on('click', function() {
+            console.log('Confirm delete button clicked for doctor:', doctorId);
+            
+            // Hide the modal
+            $('#confirmModal').modal('hide');
+            
+            // Send AJAX request to delete doctor
+            $.ajax({
+                url: "{% url 'appointments:delete_doctor' 0 %}".replace('/0/', `/${doctorId}/`),
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                success: function(response) {
+                    console.log('Delete doctor response:', response);
+                    if (response.status === 'success') {
+                        // Show success message
+                        $('#successMessage').text(response.message);
+                        $('#successModal').modal('show');
+                        
+                        // Remove the doctor card from the UI
+                        $(`.doctor-card[data-doctor-id="${doctorId}"]`).closest('.col-xl-4').fadeOut(500, function() {
+                            $(this).remove();
+                        });
+                        
+                        // Refresh the page after a short delay
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        // Show error message
+                        $('#errorMessage').text(response.message || 'An error occurred while deleting the doctor.');
+                        $('#errorModal').modal('show');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Delete doctor error:', xhr, status, error);
+                    const errorMessage = xhr.responseJSON?.message || 'Failed to delete doctor. Please try again.';
+                    $('#errorMessage').text(errorMessage);
+                    $('#errorModal').modal('show');
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

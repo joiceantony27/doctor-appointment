@@ -1,0 +1,233 @@
+/* Doctor List Page Styles */
+.page-header {
+    padding: 30px 0 15px;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+}
+
+.page-header p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Search Bar Styles */
+.search-container {
+    margin-bottom: 30px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 20px 12px 45px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: url('../images/search-icon.svg') no-repeat 15px center;
+    background-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+    outline: none;
+}
+
+/* Specializations Sidebar */
+.specializations {
+    padding: 15px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.specializations h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #1a1a1a;
+}
+
+.specialization-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.specialization-item {
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #4a4a4a;
+    font-size: 0.9rem;
+}
+
+.specialization-item:hover,
+.specialization-item.active {
+    background-color: #f8f9ff;
+    color: #6c5ce7;
+}
+
+/* Doctor Cards */
+.doctor-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    height: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.doctor-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-image {
+    width: 220px !important;
+    height: 220px !important;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
+
+.doctor-info {
+    width: 100%;
+    text-align: center;
+}
+
+.doctor-info h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.doctor-specialty {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.doctor-qualification {
+    color: #888;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+}
+
+.doctor-experience {
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+}
+
+.doctor-rating {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.rating-star {
+    color: #ffd700;
+    font-size: 1rem;
+    margin-right: 4px;
+}
+
+.rating-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.doctor-availability {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+}
+
+.availability-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.available {
+    background-color: #2ecc71;
+}
+
+.unavailable {
+    background-color: #e74c3c;
+}
+
+.doctor-fee {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 15px;
+}
+
+.view-profile-btn {
+    width: 100%;
+    padding: 8px;
+    background-color: #6c5ce7;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.view-profile-btn:hover {
+    background-color: #5a4bd1;
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+    .doctor-card {
+        padding: 15px;
+    }
+
+    .doctor-card .doctor-image {
+        width: 120px !important;
+        height: 120px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .specializations {
+        margin-bottom: 20px;
+    }
+
+    .doctor-card {
+        text-align: center;
+    }
+
+    .doctor-rating,
+    .doctor-availability {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .search-input {
+        padding: 10px 15px 10px 35px;
+        background-size: 15px;
+    }
+} 

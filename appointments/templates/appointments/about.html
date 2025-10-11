@@ -1,0 +1,87 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="text-center mb-5">About Prescripto</h1>
+            
+            <div class="mb-5">
+                <h2 class="h4 mb-3">Our Mission</h2>
+                <p>At Prescripto, our mission is to make healthcare accessible to everyone by connecting patients with qualified healthcare professionals through our innovative digital platform. We strive to simplify the process of finding and booking appointments with doctors while ensuring the highest standards of medical care.</p>
+            </div>
+
+            <div class="mb-5">
+                <h2 class="h4 mb-3">Why Choose Us?</h2>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h3 class="h5 mb-3"><i class="fas fa-user-md text-primary me-2"></i>Expert Doctors</h3>
+                                <p class="mb-0">Access to a network of verified and experienced healthcare professionals across various specializations.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h3 class="h5 mb-3"><i class="fas fa-calendar-check text-primary me-2"></i>Easy Booking</h3>
+                                <p class="mb-0">Simple and convenient appointment booking system with instant confirmation.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h3 class="h5 mb-3"><i class="fas fa-video text-primary me-2"></i>Video Consultations</h3>
+                                <p class="mb-0">Secure video consultations from the comfort of your home for non-emergency medical advice.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h3 class="h5 mb-3"><i class="fas fa-shield-alt text-primary me-2"></i>Secure Platform</h3>
+                                <p class="mb-0">Your privacy and data security are our top priorities. All information is encrypted and protected.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <h2 class="h4 mb-3">Our Values</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-heart text-primary fa-3x mb-3"></i>
+                            <h3 class="h5">Patient Care</h3>
+                            <p>Putting patients first in everything we do.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-certificate text-primary fa-3x mb-3"></i>
+                            <h3 class="h5">Quality</h3>
+                            <p>Maintaining high standards in healthcare delivery.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-handshake text-primary fa-3x mb-3"></i>
+                            <h3 class="h5">Trust</h3>
+                            <p>Building lasting relationships through transparency.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <h2 class="h4 mb-4">Ready to Get Started?</h2>
+                <a href="{% url 'appointments:doctor_list' %}" class="btn btn-primary btn-lg">Find a Doctor</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

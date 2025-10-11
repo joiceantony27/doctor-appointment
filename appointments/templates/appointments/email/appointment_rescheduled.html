@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Appointment Rescheduled</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .content {
+            margin-top: 20px;
+        }
+        .info-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Appointment Rescheduled</h2>
+        </div>
+        
+        <div class="content">
+            <p>Dear Dr. {{ doctor.user.get_full_name }},</p>
+            
+            <p>An appointment has been rescheduled:</p>
+            
+            <div class="info-item">
+                <strong>Patient:</strong> {{ patient }}<br>
+                <strong>New Date:</strong> {{ appointment.date }}<br>
+                <strong>New Time:</strong> {{ appointment.time_slot }}<br>
+                <strong>Original Date:</strong> {{ appointment.original_date }}<br>
+                <strong>Original Time:</strong> {{ appointment.original_time_slot }}
+            </div>
+            
+            <p>Please review the new appointment time. You can approve or reject this rescheduling request in your dashboard.</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated email. Please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>

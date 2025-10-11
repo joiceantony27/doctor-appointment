@@ -1,0 +1,30 @@
+<!-- This is a fix for the admin_dashboard.html doctor delete button -->
+<script>
+$(document).ready(function() {
+    // Direct form submission approach for delete doctor
+    $(document).on('click', '.delete-doctor-btn', function(e) {
+        e.preventDefault();
+        const doctorId = $(this).data('doctor-id');
+        const doctorName = $(this).closest('.doctor-card').find('h5').text();
+        
+        if (confirm(`WARNING: Are you sure you want to permanently delete ${doctorName}? This action cannot be undone and will delete all associated appointments, reviews, and other data.`)) {
+            // Create form and submit it
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/delete_doctor/${doctorId}/`;
+            
+            // Add CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            // Submit the form
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+});
+</script> 

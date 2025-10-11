@@ -1,0 +1,169 @@
+{% extends 'appointments/admin_dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">User Management</h6>
+            <div class="d-flex gap-2">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="userSearch" placeholder="Search users...">
+                    <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <select class="form-select" id="userTypeFilter">
+                    <option value="">All Types</option>
+                    <option value="patient">Patients</option>
+                    <option value="doctor">Doctors</option>
+                    <option value="admin">Admins</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>User Type</th>
+                            <th>Joined Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.get_full_name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ user.get_user_type_display }}</span>
+                            </td>
+                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ user.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No users found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    const table = $('#usersTable').DataTable({
+        pageLength: 10,
+        order: [[3, 'desc']],
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'csv',
+                className: 'btn btn-sm btn-outline-primary',
+                text: '<i class="fas fa-file-csv"></i> Export CSV'
+            }
+        ]
+    });
+
+    // Search functionality
+    $('#userSearch').on('keyup', function() {
+        table.search(this.value).draw();
+    });
+
+    // Filter by user type
+    $('#userTypeFilter').on('change', function() {
+        table.column(2).search(this.value).draw();
+    });
+});
+
+function viewUser(userId) {
+    $.get(`/admin/user/${userId}/`, function(data) {
+        $('#userDetailsModal .modal-body').html(data);
+        $('#userDetailsModal').modal('show');
+    });
+}
+
+function toggleUserStatus(userId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will change the user's account status",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, proceed'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`/admin/user/${userId}/update-status/`, {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            })
+            .done(function(response) {
+                if (response.status === 'success') {
+                    Swal.fire('Success', 'User status updated successfully', 'success')
+                    .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', 'Failed to update user status', 'error');
+                }
+            })
+            .fail(function() {
+                Swal.fire('Error', 'Failed to update user status', 'error');
+            });
+        }
+    });
+}
+
+function deleteUser(userId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete account'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`/admin/user/${userId}/delete/`, {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            })
+            .done(function(response) {
+                if (response.status === 'success') {
+                    Swal.fire('Deleted!', 'User account has been deleted.', 'success')
+                    .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', 'Failed to delete user account', 'error');
+                }
+            })
+            .fail(function() {
+                Swal.fire('Error', 'Failed to delete user account', 'error');
+            });
+        }
+    });
+}
+</script>
+{% endblock %} 

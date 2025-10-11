@@ -1,0 +1,130 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Edit Doctor Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Add User Information Section -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5 class="mb-3">Personal Information</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_first_name" class="form-label">First Name</label>
+                                    {{ form.first_name }}
+                                    <div class="invalid-feedback">Please enter your first name.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_last_name" class="form-label">Last Name</label>
+                                    {{ form.last_name }}
+                                    <div class="invalid-feedback">Please enter your last name.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="id_email" class="form-label">Email</label>
+                                    {{ form.email }}
+                                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="profile_picture" class="form-label">Profile Picture</label>
+                                <div class="mb-3">
+                                    {% if doctor.profile_picture %}
+                                        <img src="{{ doctor.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail mb-2" style="max-width: 200px;">
+                                    {% else %}
+                                        <img src="{% static 'img/default-doctor.jpg' %}" alt="Default Profile" class="img-thumbnail mb-2" style="max-width: 200px;">
+                                    {% endif %}
+                                </div>
+                                {{ form.profile_picture }}
+                                <div class="form-text">{{ form.profile_picture.help_text }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="specialization" class="form-label">Specialization</label>
+                                    {{ form.specialization }}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="experience" class="form-label">Experience (years)</label>
+                                    {{ form.experience }}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="consultation_fee" class="form-label">Consultation Fee</label>
+                                    {{ form.consultation_fee }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="education" class="form-label">Education</label>
+                            {{ form.education }}
+                            <div class="form-text">{{ form.education.help_text }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            {{ form.bio }}
+                            <div class="form-text">{{ form.bio.help_text }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="available_days" class="form-label">Available Days</label>
+                            {{ form.available_days }}
+                            <div class="form-text">{{ form.available_days.help_text }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="available_hours" class="form-label">Available Hours</label>
+                            {{ form.available_hours }}
+                            <div class="form-text">{{ form.available_hours.help_text }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_available }}
+                                <label class="form-check-label" for="is_available">Available for appointments</label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <a href="{% url 'appointments:doctor_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add validation for the form
+    const form = document.querySelector('form.needs-validation');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .details {
+            margin: 20px 0;
+        }
+        .amount {
+            font-size: 24px;
+            color: #28a745;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Payment Confirmation</h2>
+    </div>
+    
+    <div class="content">
+        <p>Dear {{ patient.get_full_name }},</p>
+        
+        <p>Your payment for the appointment with Dr. {{ doctor.user.get_full_name }} has been successfully processed.</p>
+        
+        <div class="amount">
+            Total Amount Paid: ${{ payment.total_amount }}
+        </div>
+        
+        <div class="details">
+            <h3>Appointment Details:</h3>
+            <p><strong>Date:</strong> {{ appointment.date }}</p>
+            <p><strong>Time:</strong> {{ appointment.time_slot }}</p>
+            <p><strong>Doctor:</strong> Dr. {{ doctor.user.get_full_name }}</p>
+            <p><strong>Transaction ID:</strong> {{ payment.transaction_id }}</p>
+            <p><strong>Invoice Number:</strong> {{ payment.invoice_number }}</p>
+        </div>
+        
+        <div class="details">
+            <h3>Payment Breakdown:</h3>
+            <p><strong>Consultation Fee:</strong> ${{ payment.amount }}</p>
+            <p><strong>Tax (10%):</strong> ${{ payment.tax }}</p>
+            <p><strong>Total Amount:</strong> ${{ payment.total_amount }}</p>
+        </div>
+        
+        <p>Please keep this email for your records. You can also download your receipt from your dashboard.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Thank you for choosing our services!</p>
+        <p>If you have any questions, please don't hesitate to contact us.</p>
+    </div>
+</body>
+</html> 

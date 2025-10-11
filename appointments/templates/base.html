@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Prescripto - Doctor Appointment System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* Common styles */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            padding: 3px 6px;
+            border-radius: 50%;
+            background-color: red;
+            color: white;
+            font-size: 0.7rem;
+        }
+        
+        .main-content-wrapper {
+            min-height: calc(100vh - 60px - 250px); /* viewport height - navbar height - footer height */
+            padding: 20px 0;
+        }
+        
+        footer {
+            background-color: #f8f9fa;
+            padding: 40px 0;
+            margin-top: 40px;
+        }
+        
+        .social-links a {
+            margin-right: 15px;
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+        
+        .social-links a:hover {
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'appointments:home' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Prescripto" style="height: 40px;" class="me-2">
+                Prescripto
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'appointments:home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'appointments:doctor_list' %}">Find Doctors</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'appointments:about' %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'appointments:contact' %}">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    {% if user.is_authenticated %}
+                        <div class="dropdown me-3">
+                            <a class="nav-link position-relative" href="#" id="notificationsDropdown" data-bs-toggle="dropdown">
+                                <i class="fas fa-bell"></i>
+                                {% if unread_notifications_count > 0 %}
+                                    <span class="notification-badge">{{ unread_notifications_count }}</span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                {% if notifications %}
+                                    {% for notification in notifications %}
+                                        <li>
+                                            <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %}" href="#">
+                                                {{ notification.message }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-center" href="#">View All</a></li>
+                                {% else %}
+                                    <li><a class="dropdown-item" href="#">No new notifications</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i>
+                                {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                {% if user.is_doctor %}
+                                    <li><a class="dropdown-item" href="{% url 'appointments:doctor_dashboard' %}">Dashboard</a></li>
+                                {% elif user.is_admin %}
+                                    <li><a class="dropdown-item" href="{% url 'appointments:admin_dashboard' %}">Admin Dashboard</a></li>
+                                {% else %}
+                                    <li><a class="dropdown-item" href="{% url 'appointments:patient_dashboard' %}">My Appointments</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{% url 'appointments:logout' %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'appointments:login' %}" class="btn btn-outline-primary me-2">Login</a>
+                        <a href="{% url 'appointments:register' %}" class="btn btn-primary">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    <div class="container mt-5 pt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content-wrapper">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <h5>About Prescripto</h5>
+                    <p>Your trusted healthcare partner. Book appointments with the best doctors hassle-free.</p>
+                </div>
+                <div class="col-lg-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'appointments:home' %}" class="text-decoration-none text-dark">Home</a></li>
+                        <li><a href="{% url 'appointments:doctor_list' %}" class="text-decoration-none text-dark">Find Doctors</a></li>
+                        <li><a href="{% url 'appointments:about' %}" class="text-decoration-none text-dark">About Us</a></li>
+                        <li><a href="{% url 'appointments:contact' %}" class="text-decoration-none text-dark">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> support@prescripto.com</li>
+                        <li><i class="fas fa-phone me-2"></i> +1 (234) 567-8900</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> 123 Healthcare Ave, Medical District<br>New York, NY 10001</li>
+                    </ul>
+                    <div class="social-links mt-3">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p class="mb-0">&copy; {% now "Y" %} Prescripto. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

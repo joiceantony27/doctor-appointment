@@ -1,0 +1,326 @@
+{% extends 'appointments/base.html' %}
+{% load appointment_filters %}
+
+{% block title %}All My Appointments - MedApp{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">All My Appointments</h2>
+        <a href="{% url 'appointments:patient_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    {% if messages %}
+    <div class="messages mb-4">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Filter Section -->
+    <div class="card mb-4">
+                <div class="card-body">
+            <h5 class="card-title mb-3">Filter Appointments</h5>
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Statuses</option>
+                        {% for status_code, status_name in status_choices %}
+                        <option value="{{ status_code }}" {% if status_filter == status_code %}selected{% endif %}>{{ status_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="date_from" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="date_to" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-1"></i> Apply Filters
+                        </button>
+                    <a href="{% url 'appointments:my_appointments' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-redo me-1"></i> Reset Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+                    </div>
+                    
+    <!-- Appointments Table -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Appointments List ({{ appointments.count }})</h5>
+            
+            {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr class="fade-in appointment-row" data-appointment-id="{{ appointment.id }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if appointment.doctor.profile_picture %}
+                                    <img src="{{ appointment.doctor.profile_picture.url }}" alt="Doctor" class="rounded-circle me-2" width="40" height="40">
+                                    {% else %}
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width:40px;height:40px;">
+                                        <i class="fas fa-user-md text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ appointment.doctor.user.get_full_name }}</div>
+                                        <small class="text-muted">{{ appointment.doctor.specialization.name }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ appointment.date|format_date }}</td>
+                            <td>{{ appointment.time_slot }}</td>
+                            <td>
+                                {% if appointment.appointment_type %}
+                                    {{ appointment.appointment_type }}
+                                {% else %}
+                                    {% if appointment.is_video_consultation %}
+                                        Video Consultation
+                                    {% else %}
+                                        In-Person Visit
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge {{ appointment.status|status_color }}">
+                                    {% if appointment.status == 'pending' %}
+                                        Pending Review
+                                    {% elif appointment.status == 'accepted' %}
+                                        Accepted
+                                    {% elif appointment.status == 'paid' %}
+                                        Paid
+                                    {% elif appointment.status == 'completed' %}
+                                        Completed
+                                    {% elif appointment.status == 'cancelled' %}
+                                        Cancelled
+                                    {% elif appointment.status == 'rejected' %}
+                                        Rejected
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if appointment.is_paid or appointment.payment_status == 'paid' %}
+                                    <span class="payment-badge paid">
+                                        <i class="fas fa-check-circle"></i> Paid
+                                    </span>
+                                {% elif appointment.status == 'accepted' %}
+                                    <span class="payment-badge pending">
+                                        <i class="fas fa-clock"></i> Pending
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if appointment.status == 'accepted' and not appointment.is_paid and appointment.payment_status != 'paid' %}
+                                    <button type="button" class="btn btn-success btn-sm payment-btn" data-appointment-id="{{ appointment.id }}">
+                                        <i class="fas fa-credit-card"></i> Pay Now
+                                    </button>
+                                {% elif appointment.is_paid or appointment.payment_status == 'paid' %}
+                                    <a href="{% url 'appointments:download_invoice' appointment.id %}" class="btn btn-invoice btn-sm">
+                                        <i class="fas fa-file-invoice"></i> Invoice
+                                    </a>
+                                {% endif %}
+                                
+                                {% if not appointment.is_paid and appointment.payment_status != 'paid' and appointment.status not in 'cancelled,completed,rejected' %}
+                                    <button type="button" class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ appointment.id }}">
+                                        <i class="fas fa-calendar-alt"></i> Reschedule
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#cancelModal{{ appointment.id }}">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                {% endif %}
+                                
+                                <a href="{% url 'appointments:appointment_detail' appointment.id %}" class="btn btn-info btn-sm ms-2">
+                                    <i class="fas fa-eye"></i> Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times text-muted" style="font-size: 3rem;"></i>
+                <p class="mt-3 mb-0">No appointments found matching your filters.</p>
+                <p class="text-muted">Try adjusting your filter criteria or <a href="{% url 'appointments:my_appointments' %}">view all appointments</a>.</p>
+            </div>
+            {% endif %}
+                                            </div>
+                                            </div>
+                                        </div>
+                                        
+<!-- Reschedule and Cancel Modals -->
+{% for appointment in appointments %}
+<!-- Reschedule Modal -->
+<div class="modal fade" id="rescheduleModal{{ appointment.id }}" tabindex="-1" aria-labelledby="rescheduleModalLabel{{ appointment.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rescheduleModalLabel{{ appointment.id }}">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Reschedule Appointment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+            <form id="rescheduleForm{{ appointment.id }}" action="#" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="appointment-details mb-4">
+                        <p><strong>Doctor:</strong> {{ appointment.doctor.user.get_full_name }}</p>
+                        <p><strong>Current Date:</strong> {{ appointment.date|format_date }}</p>
+                        <p><strong>Current Time:</strong> {{ appointment.time_slot }}</p>
+                                        </div>
+                                        <div class="mb-3">
+                        <label for="new_date{{ appointment.id }}" class="form-label">New Date</label>
+                        <input type="date" class="form-control" id="new_date{{ appointment.id }}" name="new_date" required min="{{ today|date:'Y-m-d' }}">
+                                        </div>
+                                        <div class="mb-3">
+                        <label for="new_time{{ appointment.id }}" class="form-label">New Time</label>
+                        <select class="form-control" id="new_time{{ appointment.id }}" name="new_time" required>
+                                                <option value="">Select Time</option>
+                            <option value="09:00-10:00">9:00 AM - 10:00 AM</option>
+                            <option value="10:00-11:00">10:00 AM - 11:00 AM</option>
+                            <option value="11:00-12:00">11:00 AM - 12:00 PM</option>
+                            <option value="12:00-13:00">12:00 PM - 1:00 PM</option>
+                            <option value="13:00-14:00">1:00 PM - 2:00 PM</option>
+                            <option value="14:00-15:00">2:00 PM - 3:00 PM</option>
+                            <option value="15:00-16:00">3:00 PM - 4:00 PM</option>
+                            <option value="16:00-17:00">4:00 PM - 5:00 PM</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span class="btn-text">Confirm Reschedule</span>
+                    </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal{{ appointment.id }}" tabindex="-1" aria-labelledby="cancelModalLabel{{ appointment.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel{{ appointment.id }}">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Cancel Appointment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+            <form id="cancelForm{{ appointment.id }}" action="{% url 'appointments:cancel_appointment' appointment.id %}" method="post">
+                                    {% csrf_token %}
+                                    <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Are you sure you want to cancel this appointment?
+                    </div>
+                    <div class="appointment-details">
+                        <p><strong>Doctor:</strong> {{ appointment.doctor.user.get_full_name }}</p>
+                        <p><strong>Date:</strong> {{ appointment.date|format_date }}</p>
+                        <p><strong>Time:</strong> {{ appointment.time_slot }}</p>
+                    </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span class="btn-text">Cancel Appointment</span>
+                    </button>
+                                    </div>
+                                </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .payment-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .payment-badge.paid {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .payment-badge.pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize datepickers if needed
+        
+        // Payment button handlers
+        document.querySelectorAll('.payment-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const appointmentId = this.getAttribute('data-appointment-id');
+                // Call payment initialization function
+                if (window.directPaymentHandler) {
+                    window.directPaymentHandler(appointmentId);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% load static %}
+
+<div class="profile-container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="profile-picture text-center mb-4">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" 
+                                         alt="{{ user.get_full_name }}" 
+                                         class="rounded-circle" 
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{% static 'img/default-profile.png' %}" 
+                                         alt="Profile Picture" 
+                                         class="rounded-circle" 
+                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="fw-bold">Full Name:</label>
+                                        <p>{{ user.get_full_name }}</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold">Email:</label>
+                                        <p>{{ user.email }}</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold">Phone:</label>
+                                        <p>{{ user.phone }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="fw-bold">Gender:</label>
+                                        <p>{{ user.gender }}</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold">Date of Birth:</label>
+                                        <p>{{ user.date_of_birth|date:"F j, Y" }}</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold">Blood Group:</label>
+                                        <p>{{ user.blood_group }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <a href="{% url 'appointments:edit_patient_profile' %}" class="btn btn-primary">
+                                    <i class="fas fa-edit"></i> Edit Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,1372 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/doctor_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/booking_system.css' %}">
+<style>
+    .submit-button {
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        border: none;
+        padding: 12px 30px;
+        font-size: 16px;
+        border-radius: 25px;
+        color: white;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 20px;
+    }
+    
+    .submit-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        background: linear-gradient(45deg, #45a049, #4CAF50);
+    }
+    
+    .time-slot-option {
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .time-slot-option:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .time-slot-option .form-check-label {
+        padding-left: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .time-slot-option .form-check-input {
+        margin-left: 0;
+        margin-right: 10px;
+    }
+    
+    .appointment-type-option {
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+    
+    .appointment-type-option:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .appointment-type-option i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+        color: #6c757d;
+    }
+    
+    .appointment-type-option.selected {
+        background-color: #e9f0ff;
+        border: 1px solid #4a90e2;
+    }
+    
+    .appointment-type-option.selected i {
+        color: #4a90e2;
+    }
+    
+    /* Hide the actual radio button but keep it accessible */
+    .appointment-type-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        margin: 0;
+        cursor: pointer;
+        z-index: 2;
+    }
+    
+    .appointment-type-option .form-check-label {
+        padding-left: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .appointment-type-option .form-check-input {
+        margin-left: 0;
+        margin-right: 10px;
+    }
+    
+    /* Calendar Styles */
+    .calendar-container {
+        margin-bottom: 20px;
+    }
+    
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        margin-top: 5px;
+    }
+    
+    .calendar-day-header {
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #757575;
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 10px;
+    }
+    
+    .calendar-day-empty {
+        height: 40px;
+    }
+    
+    .calendar-day {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .calendar-day.available {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+        cursor: pointer;
+    }
+    
+    .calendar-day.available:hover {
+        background-color: #c8e6c9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .calendar-day.unavailable {
+        background-color: #f5f5f5;
+        color: #bdbdbd;
+        cursor: not-allowed;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .calendar-day.past {
+        background-color: #f5f5f5;
+        color: #d5d5d5;
+        cursor: not-allowed;
+        position: relative;
+    }
+    
+    .calendar-day.past::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        border-top: 1px solid #e0e0e0;
+        transform: rotate(-45deg);
+    }
+    
+    .calendar-day.today {
+        border: 2px solid #2196f3;
+        font-weight: 700;
+    }
+    
+    .calendar-day.selected {
+        background-color: #fff9c4;
+        color: #f57f17;
+        border: 2px solid #fbc02d;
+        font-weight: 600;
+    }
+    
+    .calendar-message {
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    
+    /* Time Slots Styles */
+    .time-slots-container {
+        margin-bottom: 20px;
+    }
+    
+    .time-slots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        margin-top: 15px;
+    }
+    
+    .time-slots-wrapper {
+        width: 100%;
+    }
+    
+    .time-slot {
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        flex-direction: column;
+    }
+    
+    .time-slot.available {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+    }
+    
+    .time-slot.available:hover {
+        background-color: #c8e6c9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .time-slot.selected {
+        background-color: #fff9c4;
+        color: #f57f17;
+        border: 2px solid #fbc02d;
+        box-shadow: 0 4px 8px rgba(251, 192, 45, 0.3);
+        transform: translateY(-2px);
+        font-weight: bold;
+    }
+    
+    .time-slot.unavailable {
+        background-color: #f5f5f5;
+        color: #9e9e9e;
+        cursor: not-allowed;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .time-slot.booked {
+        background-color: #eeeeee;
+        color: #757575;
+        cursor: not-allowed;
+        border: 1px dashed #bdbdbd;
+    }
+    
+    .time-slot.past {
+        background-color: #ffebee;
+        color: #b71c1c;
+        cursor: not-allowed;
+        border: 1px solid #ffcdd2;
+    }
+    
+    .time-slot span.booked-indicator,
+    .time-slot span.past-indicator {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 0 5px 0 5px;
+        color: white;
+    }
+    
+    .time-slot span.booked-indicator {
+        background-color: #757575;
+    }
+    
+    .time-slot span.past-indicator {
+        background-color: #d32f2f;
+    }
+    
+    /* Legend for time slots */
+    .slot-legend {
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        margin-top: 20px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-right: 15px;
+    }
+    
+    .legend-color {
+        width: 15px;
+        height: 15px;
+        border-radius: 3px;
+        margin-right: 5px;
+    }
+    
+    .legend-text {
+        font-size: 12px;
+        color: #757575;
+    }
+    
+    /* Error Messages */
+    .error-message {
+        color: #d32f2f;
+        font-size: 0.875rem;
+        margin-top: 5px;
+        display: none;
+    }
+    
+    .error-message.show {
+        display: block;
+    }
+    
+    /* Book Appointment Button */
+    .book-appointment-btn {
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        border: none;
+        padding: 12px 30px;
+        font-size: 16px;
+        border-radius: 25px;
+        color: white;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .book-appointment-btn i {
+        margin-right: 8px;
+    }
+    
+    .book-appointment-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        background: linear-gradient(45deg, #45a049, #4CAF50);
+    }
+    
+    .book-appointment-btn.loading {
+        opacity: 0.7;
+        cursor: not-allowed;
+        position: relative;
+    }
+    
+    .book-appointment-btn.loading:after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: calc(50% - 10px);
+        right: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Loading spinner */
+    .spinner-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 150px;
+        flex-direction: column;
+    }
+    
+    .spinner-container .spinner-text {
+        margin-top: 10px;
+        color: #757575;
+    }
+    
+    /* Toast container */
+    #toast-container {
+        z-index: 1060;
+    }
+    
+    .calendar-day.less-available {
+        background-color: #f9fbe7;
+        color: #827717;
+        border: 1px dashed #cddc39;
+        cursor: pointer;
+    }
+    
+    .calendar-day.less-available:hover {
+        background-color: #f0f4c3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Time slot organization by hour */
+    .hour-section {
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 10px;
+        background-color: #fafafa;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .hour-heading {
+        color: #555;
+        font-weight: 600;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .time-slots-hour-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    /* Loading indicator */
+    .time-slots-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 150px;
+        flex-direction: column;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+    }
+    
+    .loading-text {
+        margin-top: 10px;
+        color: #555;
+        font-size: 14px;
+        text-align: center;
+    }
+    
+    /* Empty state styles */
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+    }
+    
+    .empty-state-icon {
+        font-size: 36px;
+        margin-bottom: 15px;
+        color: #ccc;
+    }
+    
+    .empty-state-text {
+        font-size: 15px;
+        margin-bottom: 5px;
+    }
+    
+    .empty-state-subtext {
+        font-size: 13px;
+        color: #888;
+    }
+    
+    /* Calendar styles */
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .calendar-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .calendar-header span {
+        font-weight: bold;
+        color: #495057;
+    }
+    
+    .calendar-day {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .calendar-day:hover {
+        background-color: #f0f0f0;
+    }
+    
+    .calendar-day.today {
+        border: 2px solid #0d6efd;
+        font-weight: bold;
+    }
+    
+    .calendar-day.selected {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+    
+    .calendar-day.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        background-color: #f0f0f0;
+    }
+    
+    .calendar-day.outside {
+        color: #c0c0c0;
+    }
+    
+    /* Time Slots styles */
+    .time-slots-container {
+        margin-top: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 15px;
+    }
+    
+    .time-slots-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .hour-section {
+        margin-bottom: 20px;
+    }
+    
+    .hour-heading {
+        background-color: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        color: #495057;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    
+    .hour-slots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    .time-slot {
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 48px;
+        position: relative;
+        border: 1px solid transparent;
+    }
+    
+    .time-slot.available {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+    
+    .time-slot.available:hover {
+        background-color: #c3e6cb;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .time-slot.available.selected {
+        background-color: #ffeeba;
+        color: #856404;
+        border-color: #ffeeba;
+        font-weight: bold;
+    }
+    
+    .time-slot.unavailable {
+        background-color: #e9ecef;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+    
+    .time-slot.unavailable.booked {
+        background-color: #d6d8db;
+        color: #1f2d3d;
+    }
+    
+    .time-slot.unavailable.past {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    /* Slot Legend */
+    .slot-legend {
+        border-top: 1px solid #e0e0e0;
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-right: 15px;
+    }
+    
+    .legend-color {
+        width: 15px;
+        height: 15px;
+        border-radius: 3px;
+        margin-right: 6px;
+    }
+    
+    .legend-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    /* Empty states */
+    .empty-state {
+        text-align: center;
+        padding: 30px 15px;
+        color: #6c757d;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #adb5bd;
+        margin-bottom: 15px;
+    }
+    
+    .empty-state-text {
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+        font-weight: 500;
+    }
+    
+    .empty-state-subtext {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    /* Error messages */
+    .error-message {
+        color: #721c24;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin-top: 8px;
+        display: none;
+    }
+    
+    /* Updated Modal Styles with higher z-index values */
+    .modal {
+        z-index: 1055;
+    }
+    
+    .modal-dialog {
+        z-index: 1056;
+        margin: 1.75rem auto;
+        pointer-events: all;
+    }
+    
+    .modal-content {
+        pointer-events: all;
+    }
+    
+    /* Ensure modal content and buttons are clickable */
+    .modal-body, 
+    .modal-footer, 
+    .modal-header,
+    .modal-footer .btn {
+        position: relative;
+        z-index: 1052;
+        pointer-events: all;
+    }
+    
+    /* Increase button visibility */
+    .modal-footer .btn {
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        transition: all 0.2s;
+    }
+    
+    .modal-footer .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .modal-footer .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0a58ca;
+    }
+    
+    .modal-footer .btn-secondary {
+        background-color: #6c757d;
+        border-color: #5c636a;
+    }
+    
+    .appointment-types-container {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .appointment-types-container h6 {
+        margin-bottom: 15px;
+        font-weight: 600;
+        }
+        
+    .appointment-type-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .appointment-type-option {
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+            position: relative;
+        border: 1px solid #e0e0e0;
+        background-color: #fff;
+        }
+    
+    .appointment-type-option:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .appointment-type-option i {
+        margin-right: 12px;
+        font-size: 1.2rem;
+        color: #6c757d;
+        min-width: 24px;
+        text-align: center;
+    }
+    
+    .appointment-type-option span {
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .appointment-type-option.selected {
+        background-color: #e9f0ff;
+        border: 1px solid #4a90e2;
+        box-shadow: 0 4px 8px rgba(74, 144, 226, 0.15);
+    }
+    
+    .appointment-type-option.selected i {
+        color: #4a90e2;
+    }
+    
+    .appointment-type-option.selected span {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+    
+    /* Hide the actual radio button but keep it accessible */
+    .appointment-type-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        margin: 0;
+        cursor: pointer;
+        z-index: 2;
+    }
+    
+    /* Hide screen reader only text */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* Force modal to display when shown */
+    .modal.show {
+        display: block;
+        opacity: 1;
+    }
+    
+    .modal-backdrop.show {
+        opacity: 0.5;
+    }
+    
+    #appointmentConfirmModal {
+        z-index: 9999;
+    }
+    
+    #appointmentConfirmModal .modal-dialog {
+        z-index: 10000;
+    }
+    
+    /* Fix modal stacking and overlay issues */
+    .modal-backdrop {
+        z-index: 1040;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="doctor-profile">
+        <!-- Doctor Header Section -->
+        <div class="profile-header">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <div class="profile-image">
+                        {% if doctor.profile_picture %}
+                            <img src="{{ doctor.profile_picture.url }}" alt="Dr. {{ doctor.user.get_full_name }}" class="rounded-circle img-fluid">
+                        {% else %}
+                            <img src="{% static 'images/default-doctor.png' %}" alt="Default Profile" class="rounded-circle img-fluid">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <h1 class="doctor-name">Dr. {{ doctor.user.get_full_name }}</h1>
+                    <h3 class="doctor-specialization text-primary">{{ doctor.specialization.name }}</h3>
+                    <div class="doctor-rating">
+                        <span class="star">★</span>
+                        <span class="rating">{{ doctor.get_average_rating|floatformat:1 }}</span>
+                        <span class="experience">• {{ doctor.experience }} years experience</span>
+                    </div>
+                    <div class="doctor-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ doctor.user.address }}</span>
+                    </div>
+                </div>
+                <div class="col-md-3 text-end">
+                    <button class="btn btn-outline-primary share-btn" data-doctor-id="{{ doctor.id }}">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                    <button class="btn btn-outline-primary save-btn {% if is_saved %}saved{% endif %}" data-doctor-id="{{ doctor.id }}">
+                        <i class="fas fa-heart"></i> {% if is_saved %}Saved{% else %}Save{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor Info Section -->
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <!-- About Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2>About Dr. {{ doctor.user.get_full_name }}</h2>
+                        <p>{{ doctor.bio }}</p>
+                    </div>
+                </div>
+
+                <!-- Doctor's Working Hours -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Doctor's Working Hours</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% if working_hours %}
+                                <div class="col-md-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <small>The doctor's time slots are available in 30-minute intervals during these working hours.</small>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Day</th>
+                                                    <th>Hours</th>
+                                                    <th>Appointment Duration</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for working_hour in working_hours %}
+                                                    {% if working_hour.is_active %}
+                                                        <tr>
+                                                            <td><strong>{{ working_hour.get_day_of_week_display }}</strong></td>
+                                                            <td>{{ working_hour.start_time|time:"g:i A" }} - {{ working_hour.end_time|time:"g:i A" }}</td>
+                                                            <td>{{ working_hour.appointment_duration }} minutes</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% empty %}
+                                                    <tr>
+                                                        <td colspan="3" class="text-center">No working hours specified.</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            {% elif time_slots %}
+                                <div class="col-md-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <small>The doctor has flexible working hours. Please select a date to see specific available time slots.</small>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>General Hours</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for slot in time_slots %}
+                                                    <tr>
+                                                        <td>{{ slot.start_time }} - {{ slot.end_time }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="col-md-12">
+                                    <p class="text-muted">
+                                        {% if available_days %}
+                                            <strong>Available Days:</strong> {{ available_days|join:", " }}<br>
+                                        {% endif %}
+                                            No specific working hours provided. Please select a date to see available time slots.
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Education & Qualifications -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2>Education & Qualifications</h2>
+                        <div class="education-list">
+                            {% for education in education_list %}
+                                <div class="education-item">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <span>{{ education }}</span>
+                                </div>
+                            {% empty %}
+                                <div class="education-item">
+                                    <p class="text-muted">No education information available.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Languages -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2>Languages</h2>
+                        <span class="badge bg-light text-dark me-2">English</span>
+                    </div>
+                </div>
+
+                <!-- Available Time Slots -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Available Time Slots</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            All appointments are scheduled in 30-minute intervals to ensure you have enough time with the doctor.
+                        </div>
+                        
+                        {% if time_slots %}
+                            <div class="row">
+                                {% for slot in time_slots %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="time-slot-card">
+                                            <div class="time-slot-header">
+                                                <i class="fas fa-clock me-2"></i>
+                                                <span>{{ slot.start_time }} - {{ slot.end_time }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Please select a date from the calendar to view available time slots.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Section -->
+            <div class="col-md-4">
+                <!-- Hidden CSRF token for AJAX requests -->
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                
+                <div class="card booking-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Book Appointment</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="appointmentForm" method="post" action="{% url 'appointments:book_appointment' doctor.id %}" aria-label="Book appointment">
+                            {% csrf_token %}
+                            
+                            <!-- Calendar View -->
+                            <div class="calendar-container">
+                                <h6>Select Date</h6>
+                                <div class="calendar-header">
+                                    <button type="button" class="btn btn-outline-primary" id="prevMonth">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <h5 id="currentMonth">Loading...</h5>
+                                    <button type="button" class="btn btn-outline-primary" id="nextMonth">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="calendar-grid" id="calendarGrid">
+                                    <!-- Calendar days will be populated by JavaScript -->
+                                </div>
+                                <input type="hidden" name="day" id="selectedDay" required>
+                                <div class="error-message" id="dayError">Please select a date</div>
+                                
+                                <!-- Calendar legend -->
+                                <div class="calendar-legend mt-3">
+                                    <div class="d-flex justify-content-center flex-wrap gap-3">
+                                        <div class="legend-item">
+                                            <span class="legend-color calendar-day available"></span>
+                                            <span class="legend-text">Available</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-color calendar-day less-available"></span>
+                                            <span class="legend-text">Limited availability</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-color calendar-day past"></span>
+                                            <span class="legend-text">Past date</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-color calendar-day selected"></span>
+                                            <span class="legend-text">Selected</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Time Slots -->
+                            <div class="time-slots-container" id="timeSlotsContainer" style="display: none;">
+                                <h6>Available Time Slots</h6>
+                                <div class="time-slots-grid" id="timeSlotsGrid">
+                                    <!-- Time slots will be populated by JavaScript -->
+                                </div>
+                                <input type="hidden" name="time_slot" id="selectedTimeSlot" required>
+                                <div class="error-message" id="timeSlotError">Please select a time slot</div>
+                            </div>
+                            
+                            <!-- Appointment Types -->
+                            <div class="appointment-types-container">
+                                <h6>Appointment Type</h6>
+                                <div class="appointment-type-options">
+                                    <div class="appointment-type-option" data-type="general">
+                                        <i class="fas fa-stethoscope"></i>
+                                        <span>General Checkup</span>
+                                        <input type="radio" name="appointment_type" id="appointment_type_general" value="general" required>
+                                        <label for="appointment_type_general" class="sr-only">General Checkup</label>
+                                    </div>
+                                    <div class="appointment-type-option" data-type="followup">
+                                        <i class="fas fa-undo"></i>
+                                        <span>Follow-up Visit</span>
+                                        <input type="radio" name="appointment_type" id="appointment_type_followup" value="followup" required>
+                                        <label for="appointment_type_followup" class="sr-only">Follow-up Visit</label>
+                                    </div>
+                                    <div class="appointment-type-option" data-type="specialist">
+                                        <i class="fas fa-user-md"></i>
+                                        <span>Specialist Consultation</span>
+                                        <input type="radio" name="appointment_type" id="appointment_type_specialist" value="specialist" required>
+                                        <label for="appointment_type_specialist" class="sr-only">Specialist Consultation</label>
+                                    </div>
+                                </div>
+                                <div class="error-message" id="appointmentTypeError">Please select an appointment type</div>
+                            </div>
+                            
+                            <!-- Optional note for the doctor -->
+                            <div class="form-group mt-3">
+                                <label for="appointmentNote">Note for Doctor (Optional)</label>
+                                <textarea class="form-control" id="appointmentNote" name="note" rows="2" placeholder="Add any specific concerns or information for the doctor..."></textarea>
+                            </div>
+                            
+                            <!-- Appointment Summary (shows after selections are made) -->
+                            <div id="appointmentSummary" class="appointment-summary mt-4 p-3 rounded" style="display: none; background-color: #f8f9fa; border: 1px solid #ddd;">
+                                <h6 class="mb-3">Appointment Summary</h6>
+                                <div class="d-flex flex-column">
+                                    <p class="mb-1"><strong>Doctor:</strong> Dr. {{ doctor.user.get_full_name }}</p>
+                                    <p class="mb-1"><strong>Date:</strong> <span id="summaryDate">Not selected</span></p>
+                                    <p class="mb-1"><strong>Time:</strong> <span id="summaryTime">Not selected</span></p>
+                                    <p class="mb-1"><strong>Type:</strong> <span id="summaryType">Not selected</span></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <button type="submit" class="book-appointment-btn" id="bookAppointmentBtn" aria-label="Book appointment">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true" id="bookingSpinner"></span>
+                                <i class="fas fa-calendar-check me-2" id="bookingIcon"></i>
+                                <span id="bookingText">Book Appointment</span>
+                            </button>
+                            <!-- Hidden redirect field for server-side handling -->
+                            <input type="hidden" name="next" value="{% url 'appointments:patient_dashboard' %}">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Doctor's Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="share-options">
+                    <button class="btn btn-outline-primary me-2" onclick="shareOnWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </button>
+                    <button class="btn btn-outline-primary me-2" onclick="shareOnFacebook()">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </button>
+                    <button class="btn btn-outline-primary me-2" onclick="shareOnTwitter()">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="copyLink()">
+                        <i class="fas fa-link"></i> Copy Link
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script to handle form submission and redirection -->
+<script src="{% static 'js/calendar_init.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get form elements
+    const appointmentForm = document.getElementById('appointmentForm');
+    const selectedDayInput = document.getElementById('selectedDay');
+    const selectedTimeSlotInput = document.getElementById('selectedTimeSlot');
+    
+    console.log("DOM Content Loaded");
+    console.log("Form element:", appointmentForm);
+    
+    // Parse doctor's working hours to highlight available days in the calendar
+    const workingHoursData = [
+    {% for working_hour in working_hours %}
+        {% if working_hour.is_active %}
+        {
+            day_of_week: {{ working_hour.day_of_week }},
+            day_name: "{{ working_hour.get_day_of_week_display }}",
+            start_time: "{{ working_hour.start_time|time:'H:i' }}",
+            end_time: "{{ working_hour.end_time|time:'H:i' }}",
+            appointment_duration: {{ working_hour.appointment_duration }}
+        }{% if not forloop.last %},{% endif %}
+        {% endif %}
+    {% endfor %}
+    ];
+    
+    // Make working hours data available to calendar_init.js
+    window.doctorWorkingHours = workingHoursData;
+    console.log("Doctor working hours:", window.doctorWorkingHours);
+        
+    // Handle appointment type selection
+    const appointmentTypeOptions = document.querySelectorAll('.appointment-type-option');
+    appointmentTypeOptions.forEach(function(option) {
+        option.addEventListener('click', function() {
+            // Find the radio input within this option
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                // Check the radio button
+                radio.checked = true;
+            
+                // Update UI - remove selected class from all options
+                appointmentTypeOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to the clicked option
+                this.classList.add('selected');
+                
+                console.log('Appointment type selected:', radio.value);
+                
+                // Update appointment summary
+                updateAppointmentSummary();
+                }
+        });
+    });
+    
+    // Set up form submission handler
+    if (appointmentForm) {
+        appointmentForm.addEventListener('submit', function(e) {
+            // Only validate the form, don't prevent normal submission
+            if (!validateAppointmentForm()) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Show spinner
+            const spinner = document.getElementById('bookingSpinner');
+            const icon = document.getElementById('bookingIcon');
+            const text = document.getElementById('bookingText');
+            
+            if (spinner) spinner.classList.remove('d-none');
+            if (icon) icon.classList.add('d-none');
+            if (text) text.textContent = 'Processing...';
+            
+            // Let the form submit normally - the server will handle the redirect
+            return true;
+        });
+    }
+    
+    // Function to validate the appointment form
+    function validateAppointmentForm() {
+        let isValid = true;
+        
+        // Check if a date is selected
+        const selectedDay = document.getElementById('selectedDay');
+        if (!selectedDay || !selectedDay.value) {
+            document.getElementById('dayError').classList.add('show');
+            alert('Please select a date for your appointment');
+            isValid = false;
+        } else {
+            document.getElementById('dayError').classList.remove('show');
+        }
+        
+        // Check if a time slot is selected
+        const selectedTimeSlot = document.getElementById('selectedTimeSlot');
+        if (!selectedTimeSlot || !selectedTimeSlot.value) {
+            document.getElementById('timeSlotError').classList.add('show');
+            alert('Please select an available time slot');
+            isValid = false;
+        } else {
+            document.getElementById('timeSlotError').classList.remove('show');
+        }
+        
+        // Check if an appointment type is selected
+        if (!appointmentForm.querySelector('input[name="appointment_type"]:checked')) {
+            document.getElementById('appointmentTypeError').classList.add('show');
+            alert('Please select an appointment type');
+            isValid = false;
+        } else {
+            document.getElementById('appointmentTypeError').classList.remove('show');
+        }
+        
+        return isValid;
+    }
+        
+        // Function to update appointment summary
+        function updateAppointmentSummary() {
+        console.log("Updating appointment summary");
+            const summarySection = document.getElementById('appointmentSummary');
+            const summaryDate = document.getElementById('summaryDate');
+            const summaryTime = document.getElementById('summaryTime');
+            const summaryType = document.getElementById('summaryType');
+            
+            // Check if we have the necessary selections
+        const hasDate = selectedDayInput && selectedDayInput.value;
+        const hasTimeSlot = selectedTimeSlotInput && selectedTimeSlotInput.value;
+            const typeRadio = document.querySelector('input[name="appointment_type"]:checked');
+            const hasType = typeRadio !== null;
+        
+        if (!summarySection || !summaryDate || !summaryTime || !summaryType) {
+            console.error("Some summary elements are missing");
+            return;
+        }
+            
+            // Update summary elements
+            if (hasDate) {
+            // Format the date in a human-readable format
+            const dateParts = selectedDayInput.value.split('-');
+            const selectedDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                summaryDate.textContent = selectedDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+            } else {
+                summaryDate.textContent = 'Not selected';
+            }
+            
+            if (hasTimeSlot) {
+                // Get time slot element to extract the formatted time
+                const selectedSlotElement = document.querySelector('.time-slot.selected');
+                if (selectedSlotElement) {
+                // Extract time display from the element
+                let timeText = selectedSlotElement.textContent.trim();
+                    summaryTime.textContent = timeText;
+                } else {
+                // Fallback to formatted value from the input
+                const timeSlotParts = selectedTimeSlotInput.value.split('-');
+                if (timeSlotParts.length === 2) {
+                    summaryTime.textContent = `${timeSlotParts[0]} - ${timeSlotParts[1]}`;
+                } else {
+                    summaryTime.textContent = selectedTimeSlotInput.value;
+                }
+                }
+            } else {
+                summaryTime.textContent = 'Not selected';
+            }
+            
+            if (hasType) {
+                // Map appointment types to user-friendly names
+                const typeLabels = {
+                    'general': 'General Checkup',
+                    'followup': 'Follow-up Visit',
+                    'specialist': 'Specialist Consultation'
+                };
+                summaryType.textContent = typeLabels[typeRadio.value] || typeRadio.value;
+            } else {
+                summaryType.textContent = 'Not selected';
+            }
+            
+        // Show summary section if we have at least two of the selections
+        const numSelections = (hasDate ? 1 : 0) + (hasTimeSlot ? 1 : 0) + (hasType ? 1 : 0);
+        if (numSelections >= 2) {
+                summarySection.style.display = 'block';
+            } else {
+                summarySection.style.display = 'none';
+            }
+        
+        console.log("Summary updated with Date:", hasDate, "Time:", hasTimeSlot, "Type:", hasType);
+    }
+});
+</script>
+{% endblock content %}
