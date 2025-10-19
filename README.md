@@ -266,6 +266,15 @@ For issues and questions:
 3. Check GitHub Actions workflow logs
 4. Review Azure resource health
 
+## 🚀 Live Deployment Status
+
+- **Azure Web App**: https://doctorapp89ff75c3.azurewebsites.net
+- **GitHub Repository**: https://github.com/joiceantony27/doctor-appointment
+- **CI/CD Pipeline**: Automated deployment with GitHub Actions
+
+### Deployment Trigger
+This commit triggers the automated deployment pipeline to Azure.
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
