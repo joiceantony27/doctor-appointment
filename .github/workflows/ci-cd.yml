@@ -184,9 +184,10 @@ jobs:
     
     steps:
     - name: Notify deployment status
+      if: ${{ secrets.SLACK_WEBHOOK_URL }}
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ job.status }}
-        channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-      if: always()
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      continue-on-error: true
