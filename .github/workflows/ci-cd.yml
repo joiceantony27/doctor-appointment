@@ -162,19 +162,31 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       continue-on-error: true
     
+    - name: Configure Web App for Docker
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az webapp config container set \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
+            --container-image-name ${{ secrets.REGISTRY_LOGIN_SERVER }}/doctor-appointment:latest \
+            --container-registry-url https://${{ secrets.REGISTRY_LOGIN_SERVER }} \
+            --container-registry-user ${{ secrets.REGISTRY_USERNAME }} \
+            --container-registry-password ${{ secrets.REGISTRY_PASSWORD }}
+          
+          az webapp config appsettings set \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
+            --settings WEBSITES_ENABLE_APP_SERVICE_STORAGE=false \
+                      WEBSITES_PORT=8000 \
+                      DJANGO_SETTINGS_MODULE=doctor_appointment.settings_prod
+      continue-on-error: true
+    
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-        images: ${{ secrets.REGISTRY_LOGIN_SERVER }}/doctor-appointment:${{ github.sha }}
-      continue-on-error: true
-    
-    - name: Run database migrations
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          az webapp config appsettings set --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_WEBAPP_NAME }} --settings DJANGO_SETTINGS_MODULE=doctor_appointment.settings_prod
-          az webapp ssh --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_WEBAPP_NAME }} --command "python manage.py migrate"
+        images: ${{ secrets.REGISTRY_LOGIN_SERVER }}/doctor-appointment:latest
       continue-on-error: true
 
   # notify:
