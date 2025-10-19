@@ -10,7 +10,7 @@ GITHUB_USERNAME="joiceantony27"
 REPO_NAME="doctor-appointment"
 RESOURCE_GROUP="rg-doctor-appointment-prod"
 APP_NAME="doctor-appointment-$(openssl rand -hex 3)"
-LOCATION="eastus"
+LOCATION="westus2"
 
 echo "🚀 Deploying Azure Infrastructure for Django Doctor Appointment System"
 echo "======================================================================"
@@ -49,17 +49,19 @@ az deployment group create \
     --resource-group ${RESOURCE_GROUP} \
     --template-file azure-deploy.json \
     --parameters \
-        appServiceName=${APP_NAME} \
+        webAppName=${APP_NAME} \
         location=${LOCATION} \
-        containerRegistryName=${APP_NAME}registry \
+        containerRegistryName=$(echo ${APP_NAME} | tr -d '-')registry \
         postgresServerName=${APP_NAME}-db \
-        redisCacheName=${APP_NAME}-redis
+        postgresAdminLogin=djangoadmin \
+        postgresAdminPassword=DjangoApp123!
 
 # Get deployment outputs
 echo "📋 Getting deployment details..."
-REGISTRY_SERVER=$(az acr show --name ${APP_NAME}registry --resource-group ${RESOURCE_GROUP} --query loginServer -o tsv)
-REGISTRY_USERNAME=$(az acr credential show --name ${APP_NAME}registry --resource-group ${RESOURCE_GROUP} --query username -o tsv)
-REGISTRY_PASSWORD=$(az acr credential show --name ${APP_NAME}registry --resource-group ${RESOURCE_GROUP} --query passwords[0].value -o tsv)
+REGISTRY_NAME=$(echo ${APP_NAME} | tr -d '-')registry
+REGISTRY_SERVER=$(az acr show --name ${REGISTRY_NAME} --resource-group ${RESOURCE_GROUP} --query loginServer -o tsv)
+REGISTRY_USERNAME=$(az acr credential show --name ${REGISTRY_NAME} --resource-group ${RESOURCE_GROUP} --query username -o tsv)
+REGISTRY_PASSWORD=$(az acr credential show --name ${REGISTRY_NAME} --resource-group ${RESOURCE_GROUP} --query passwords[0].value -o tsv)
 
 # Get database connection string
 DB_SERVER="${APP_NAME}-db.postgres.database.azure.com"
