@@ -177,17 +177,15 @@ jobs:
           az webapp ssh --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_WEBAPP_NAME }} --command "python manage.py migrate"
       continue-on-error: true
 
-  notify:
-    needs: [deploy-to-azure]
-    runs-on: ubuntu-latest
-    if: always()
-    
-    steps:
-    - name: Notify deployment status
-      if: ${{ secrets.SLACK_WEBHOOK_URL }}
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      continue-on-error: true
+  # notify:
+  #   needs: [deploy-to-azure]
+  #   runs-on: ubuntu-latest
+  #   if: always()
+  #   
+  #   steps:
+  #   - name: Notify deployment status
+  #     uses: 8398a7/action-slack@v3
+  #     with:
+  #       status: ${{ job.status }}
+  #     env:
+  #       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
