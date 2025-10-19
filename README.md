@@ -278,3 +278,4 @@ This commit triggers the automated deployment pipeline to Azure.
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+Deployment ready with GitHub secrets configured
